@@ -45,68 +45,36 @@
 #
 #
 
-print_status() {
-    echo
-    echo "## $1"
-    echo
-}
+
+INSTALL_PKG_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates software-properties-common openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
+zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy"
 
 ACT_USER=${SUDO_USER:-$(whoami)}
 ACT_GROUP=$(id -gn ${ACT_USER})
-SCRIPT_NONINTERACTIVE=1
-SCRIPT_INTERACTIVE_CONFIRM="y"
-if [[ $- == *i* ]];then
+if [ -z ${SCRIPT_NONINTERACTIVE} ];then
   SCRIPT_NONINTERACTIVE=1
-else
-  if [ -z "$PS1" ]; then
-    read -e -p "Proceed? [y/n] " -i ${SCRIPT_INTERACTIVE_CONFIRM} SCRIPT_INTERACTIVE_CONFIRM
-    echo ${SCRIPT_INTERACTIVE_CONFIRM}
-    if [[ "${SCRIPT_INTERACTIVE_CONFIRM}" == "y" ]];then
-      SCRIPT_NONINTERACTIVE=0
+  SCRIPT_INTERACTIVE_CONFIRM="y"
+  if [[ $- == *i* ]];then
+    SCRIPT_NONINTERACTIVE=1
+  else
+    if [ -z "$PS1" ]; then
+      read -e -p "Proceed? [y/n] " -i ${SCRIPT_INTERACTIVE_CONFIRM} SCRIPT_INTERACTIVE_CONFIRM
+      if [[ "${SCRIPT_INTERACTIVE_CONFIRM}" == "y" ]];then
+        SCRIPT_NONINTERACTIVE=0
+      else
+        SCRIPT_NONINTERACTIVE=1
+      fi
     else
       SCRIPT_NONINTERACTIVE=1
     fi
+  fi
+else
+  if [ ${SCRIPT_NONINTERACTIVE} -eq 0 ] ;then
+    SCRIPT_NONINTERACTIVE=0
   else
     SCRIPT_NONINTERACTIVE=1
   fi
 fi
-
-print_bold() {
-    title="$1"
-    text="$2"
-
-    echo
-    echo "${red}================================================================================${normal}"
-    echo "${red}================================================================================${normal}"
-    echo
-    echo -e "  ${bold}${yellow}${title}${normal}"
-    echo
-    echo -en "  ${text}"
-    echo
-    echo "${red}================================================================================${normal}"
-    echo "${red}================================================================================${normal}"
-}
-
-bail() {
-    echo 'Error executing command, exiting'
-    exit 1
-}
-
-exec_cmd_nobail() {
-    echo "+ $1"
-    bash -c "$1"
-}
-
-exec_cmd() {
-    exec_cmd_nobail "$1" || bail
-}
-
-check_root(){
-  if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root";
-    exit 1;
-  fi
-}
 
 init_env(){
   USER_NAME_DEFAULT="www"
@@ -167,13 +135,54 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   echo "ZSH_THEME: [${ZSH_THEME}] "
 }
 
+print_status() {
+    echo
+    echo "## $1"
+    echo
+}
+
+print_bold() {
+    title="$1"
+    text="$2"
+
+    echo
+    echo "${red}================================================================================${normal}"
+    echo "${red}================================================================================${normal}"
+    echo
+    echo -e "  ${bold}${yellow}${title}${normal}"
+    echo
+    echo -en "  ${text}"
+    echo
+    echo "${red}================================================================================${normal}"
+    echo "${red}================================================================================${normal}"
+}
+
+bail() {
+    echo 'Error executing command, exiting'
+    exit 1
+}
+
+exec_cmd_nobail() {
+    echo "+ $1"
+    bash -c "$1"
+}
+
+exec_cmd() {
+    exec_cmd_nobail "$1" || bail
+}
+
+check_root(){
+  if [ "$EUID" -ne 0 ]; then
+    echo "Please run as root";
+    exit 1;
+  fi
+}
+
 update_apt_source(){
   apt-get update;
 }
 install_base_package(){
-  apt-get install -y --no-install-recommends \
-    sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates software-properties-common openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
-    zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy
+  apt-get install -y --no-install-recommends ${INSTALL_PKG_BASE}
 }
 
 set_root_user(){
