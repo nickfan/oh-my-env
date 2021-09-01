@@ -10,6 +10,7 @@ http-client.private.env.json
 .env.my
 .env.mylocal
 .env.prod
+.envrc
 
 /caches/*
 /caches/
