@@ -51,8 +51,8 @@ print_status() {
     echo
 }
 
-ACT_USER=$(whoami)
-ACT_GROUP=$(id -gn)
+ACT_USER=${SUDO_USER:-$(whoami)}
+ACT_GROUP=$(id -gn ${ACT_USER})
 SCRIPT_NONINTERACTIVE=1
 SCRIPT_INTERACTIVE_CONFIRM="y"
 if [[ $- == *i* ]];then
