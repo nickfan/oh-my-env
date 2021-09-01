@@ -123,6 +123,27 @@ init_env(){
   TERM=${TERM_DEFAULT}
   ZSH_THEME=${ZSH_THEME_DEFAULT}
 
+  if [ -f "${HOME}/.omerc" ];then
+    source "${HOME}/.omerc";
+  else
+    if [ -f "${HOME}/.omerc.example" ];then
+      cp -af "${HOME}/.omerc.example" "${HOME}/.omerc";
+      source "${HOME}/.omerc";
+    else
+      cat >${HOME}/.omerc.example <<EOL
+USER_NAME=${USER_NAME_DEFAULT}
+USER_PASSWORD=${USER_PASSWORD_DEFAULT}
+CONDA_ENV_NAME=${CONDA_ENV_NAME_DEFAULT}
+CONDA_ENV_PY_VER=${CONDA_ENV_PY_VER_DEFAULT}
+TZ=${TZ_DEFAULT}
+TERM=${TERM_DEFAULT}
+ZSH_THEME=${ZSH_THEME_DEFAULT}
+
+EOL
+
+    fi
+  fi
+
   if [ ${SCRIPT_NONINTERACTIVE} -eq 0 ] ;then
     read -e -p "USER_NAME: [${USER_NAME}] " -i ${USER_NAME} USER_NAME
     read -e -p "USER_PASSWORD: [${USER_PASSWORD}] " -i ${USER_PASSWORD} USER_PASSWORD
