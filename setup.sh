@@ -27,7 +27,23 @@
 # wget -qO- https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh | sudo -E bash -
 #
 #
-
+# Run at local as root noninteractive
+#
+# cat setup.sh | bash -
+#
+# or insert `sudo -E` before `bash`:
+#
+# cat setup.sh | sudo -E bash -
+#
+# Run at local as root interactive
+#
+# bash ./setup.sh
+#
+# or with sudo
+#
+# sudo bash ./setup.sh
+#
+#
 
 print_status() {
     echo
@@ -35,23 +51,22 @@ print_status() {
     echo
 }
 
-if test -t 1; then # if terminal
-    ncolors=$(which tput > /dev/null && tput colors) # supports color
-    if test -n "$ncolors" && test $ncolors -ge 8; then
-        termcols=$(tput cols)
-        bold="$(tput bold)"
-        underline="$(tput smul)"
-        standout="$(tput smso)"
-        normal="$(tput sgr0)"
-        black="$(tput setaf 0)"
-        red="$(tput setaf 1)"
-        green="$(tput setaf 2)"
-        yellow="$(tput setaf 3)"
-        blue="$(tput setaf 4)"
-        magenta="$(tput setaf 5)"
-        cyan="$(tput setaf 6)"
-        white="$(tput setaf 7)"
+SCRIPT_NONINTERACTIVE=1
+SCRIPT_INTERACTIVE_CONFIRM="y"
+if [[ $- == *i* ]];then
+  SCRIPT_NONINTERACTIVE=1
+else
+  if [ -z "$PS1" ]; then
+    read -e -p "Proceed? [y/n] " -i ${SCRIPT_INTERACTIVE_CONFIRM} SCRIPT_INTERACTIVE_CONFIRM
+    echo ${SCRIPT_INTERACTIVE_CONFIRM}
+    if [[ "${SCRIPT_INTERACTIVE_CONFIRM}" == "y" ]];then
+      SCRIPT_NONINTERACTIVE=0
+    else
+      SCRIPT_NONINTERACTIVE=1
     fi
+  else
+    SCRIPT_NONINTERACTIVE=1
+  fi
 fi
 
 print_bold() {
@@ -107,19 +122,8 @@ init_env(){
   TZ=${TZ_DEFAULT}
   TERM=${TERM_DEFAULT}
   ZSH_THEME=${ZSH_THEME_DEFAULT}
-  SCRIPT_NONINTERACTIVE=0
 
-  if [ ! -z "${DEBIAN_FRONTEND}" ] && [ "${DEBIAN_FRONTEND}"=="noninteractive" ] ;then
-    SCRIPT_NONINTERACTIVE=1
-    USER_NAME=${USER_NAME_DEFAULT}
-    USER_PASSWORD=${USER_PASSWORD_DEFAULT}
-    CONDA_ENV_NAME=${CONDA_ENV_NAME_DEFAULT}
-    CONDA_ENV_PY_VER=${CONDA_ENV_PY_VER_DEFAULT}
-    TZ=${TZ_DEFAULT}
-    TERM=${TERM_DEFAULT}
-    ZSH_THEME=${ZSH_THEME_DEFAULT}
-  else
-    SCRIPT_NONINTERACTIVE=0
+  if [ ${SCRIPT_NONINTERACTIVE} -eq 0 ] ;then
     read -e -p "USER_NAME: [${USER_NAME}] " -i ${USER_NAME} USER_NAME
     read -e -p "USER_PASSWORD: [${USER_PASSWORD}] " -i ${USER_PASSWORD} USER_PASSWORD
     read -e -p "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] " -i ${CONDA_ENV_NAME} CONDA_ENV_NAME
@@ -127,9 +131,9 @@ init_env(){
     read -e -p "TZ: [${TZ}] " -i ${TZ} TZ
     read -e -p "TERM: [${TERM}] " -i ${TERM} TERM
     read -e -p "ZSH_THEME: [${ZSH_THEME}] " -i ${ZSH_THEME} ZSH_THEME
+  else
+    DEBIAN_FRONTEND="noninteractive"
   fi
-
-  echo "SCRIPT_NONINTERACTIVE: [${SCRIPT_NONINTERACTIVE}] "
   echo "USER_NAME: [${USER_NAME}] "
   echo "USER_PASSWORD: [${USER_PASSWORD}] "
   echo "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] "
@@ -153,11 +157,7 @@ set_root_user(){
 }
 
 setup_dist_user_group(){
-  if grep -q ${USER_NAME} /etc/group; then
-    echo 'group already exists';
-  else
-    addgroup ${USER_NAME};
-  fi
+  getent group ${USER_NAME} || groupadd ${USER_NAME}
   if id "${USER_NAME}" &>/dev/null; then
       echo 'user already exists'
   else
@@ -202,7 +202,7 @@ fi
 
 # Populating Cache
 print_status "Populating apt-get cache..."
-exec_cmd 'apt-get update'
+#exec_cmd 'apt-get update'
 
 if [ "X${PRE_INSTALL_PKGS}" != "X" ]; then
     print_status "Installing packages required for setup:${PRE_INSTALL_PKGS}..."
@@ -218,14 +218,10 @@ if [[ $IS_PRERELEASE -eq 0 ]]; then
 fi
 
 init_env
+setup_dist_user_group
 
 print_status "Done."
 }
 ## Defer setup until we have the complete script
 setup
 
-
-#sed -i -E "s/^Defaults env_reset/Defaults env_reset, timestamp_timeout=-1/g" /etc/sudoers
-#sed -i -E "/\.myenvset/d" /root/.profile && \
-#echo "export PATH=$HOME/.local/bin:$HOME/bin:$PATH:/usr/local/go/bin" >> /root/.profile && \
-#echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile
