@@ -51,6 +51,8 @@ print_status() {
     echo
 }
 
+ACT_USER=$(whoami)
+ACT_GROUP=$(id -gn)
 SCRIPT_NONINTERACTIVE=1
 SCRIPT_INTERACTIVE_CONFIRM="y"
 if [[ $- == *i* ]];then
@@ -129,6 +131,7 @@ init_env(){
     if [ -f "${HOME}/.omerc.example" ];then
       cp -af "${HOME}/.omerc.example" "${HOME}/.omerc";
       source "${HOME}/.omerc";
+      chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc;
     else
       cat >${HOME}/.omerc.example <<EOL
 USER_NAME=${USER_NAME_DEFAULT}
@@ -140,7 +143,7 @@ TERM=${TERM_DEFAULT}
 ZSH_THEME=${ZSH_THEME_DEFAULT}
 
 EOL
-
+chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
     fi
   fi
 
