@@ -349,8 +349,9 @@ fi
 
 }
 
-set_root_user(){
-  chsh -s /bin/zsh root
+set_user_shell(){
+  check_set_setup_user ${1:-${SETUP_USER}}
+  chsh -s /bin/zsh ${SETUP_USER}
 }
 
 setup_dist_user_group(){
@@ -392,11 +393,11 @@ setup_user_root_profile(){
     echo "if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi" >> ${SETUP_ROOT_HOME}/.profile
 }
 update_package_source(){
-  curl -fsSL https://deb.nodesource.com/setup_${PKG_VER_node_major}.x | bash -
+  add-apt-repository -y -n ppa:neovim-ppa/stable
   curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
   echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-  add-apt-repository -y ppa:neovim-ppa/stable
-  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
+  curl -fsSL https://deb.nodesource.com/setup_${PKG_VER_node_major}.x | bash -
+#  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
 }
 install_package_system(){
   exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_SYSTEM}"
@@ -406,11 +407,11 @@ setup_current_env_files(){
   mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
   mkdir -p ${SETUP_USER_HOME}/{.ssh/{config.d,ctrl.d},.local/bin,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
   mkdir -p ${SETUP_USER_HOME}/Downloads/temp && \
-  ln -nfs /data/app ~/Code
+  ln -nfs /data/app ${SETUP_USER_HOME}/Code
 }
 setup_package_addons(){
   check_set_setup_user ${1:-${SETUP_USER}}
-  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
+  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup
   exec_cmd "wget https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
   exec_cmd "wget https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
@@ -422,7 +423,7 @@ setup_package_addons(){
 }
 setup_lang_go(){
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
-    if [ ! check_url_is_ok "${GOLANG_DL_URL}" ];then
+    if [[ check_url_is_ok "${GOLANG_DL_URL}" -ne 0 ]];then
         GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
     fi
     exec_cmd "wget ${GOLANG_DL_URL}"
@@ -436,6 +437,7 @@ export PATH="$PATH:/usr/local/go/bin" \n\
 setup_env_zsh(){
   check_set_setup_user ${1:-${SETUP_USER}}
   exec_cmd "wget -O ${SETUP_USER_HOME}/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/master/config/p10k-lean.zsh"
+  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_ACT_HOME}/.p10k.zsh;
   sudo -H -u ${SETUP_USER} bash -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${PKG_VER_zsh_in_docker}/zsh-in-docker.sh)" -- \
     -t powerlevel10k/powerlevel10k \
     -p git \
@@ -468,9 +470,11 @@ setup_env_zsh(){
     -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
     -a 'if [ "$TERM" = "xterm-256color" ] && [ -z "$INSIDE_EMACS" ]; then test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh";fi'
     sed -i -E "/POWERLEVEL9K_/d" ${SETUP_USER_HOME}/.zshrc && \
-    cp -af ${SETUP_USER_HOME}/.oh-my-zsh /home/${USER_NAME}/ && \
-    cp -af ${SETUP_USER_HOME}/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
-    cp -af ${SETUP_USER_HOME}/.p10k.zsh /home/${USER_NAME}/ && \
+    if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+      cp -af ${SETUP_USER_HOME}/.oh-my-zsh /home/${USER_NAME}/ && \
+      cp -af ${SETUP_USER_HOME}/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
+      cp -af ${SETUP_USER_HOME}/.p10k.zsh /home/${USER_NAME}/
+    fi
     chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.oh-my-zsh && \
     chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
     chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.p10k.zsh
@@ -494,7 +498,12 @@ unbind C-b \n\
 set -g prefix C-g \n\
 bind C-g send-prefix \n\
 ' >> ${SETUP_USER_HOME}/.tmux.conf.local
-  cp -af ${SETUP_USER_HOME}/.tmux.conf.local /home/${USER_NAME}/ && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux.conf.local
+  if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+      cp -af ${SETUP_USER_HOME}/.tmux /home/${USER_NAME}/ && \
+      cp -af ${SETUP_USER_HOME}/.tmux.conf.local /home/${USER_NAME}/
+  fi
+  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux && \
+  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux.conf.local
 }
 setup_env_fzf(){
   check_set_setup_user ${1:-${SETUP_USER}}
@@ -502,7 +511,23 @@ setup_env_fzf(){
     sudo -H -u ${SETUP_USER} bash -c "git clone --depth 1 https://github.com/junegunn/fzf.git ${SETUP_USER_HOME}/.fzf && ${SETUP_USER_HOME}/.fzf/install"
   fi
 }
-
+setup_env_fonts(){
+  check_set_setup_user ${1:-${SETUP_USER}}
+  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup
+  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/setup/font_powerline  && \
+  mkdir ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/setup/font_powerline && bash ${SETUP_USER_HOME}/setup/font_powerline/install.sh && \
+  cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip Hack.zip && \
+  cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip Meslo.zip && \
+  fc-cache -vf"
+  if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+      mkdir -p /home/${USER_NAME}/setup && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/setup/
+      mkdir -p /home/${USER_NAME}/.local/share/fonts
+      cp -af ${SETUP_USER_HOME}/setup/font_powerline /home/${USER_NAME}/setup/ && \
+      cp -af ${SETUP_USER_HOME}/.local/share/fonts /home/${USER_NAME}/.local/share/
+  fi
+  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/setup/font_powerline && \
+  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.local
+}
 setup() {
 check_installed
 check_root
@@ -517,14 +542,23 @@ setup_user_root_profile
 update_package_source
 install_package_system
 check_set_setup_user ${SETUP_ROOT}
-setup_current_env_files ${SETUP_ROOT}
+set_user_shell ${SETUP_ROOT}
 setup_package_addons ${SETUP_ROOT}
+check_set_setup_user ${USER_NAME}
+set_user_shell ${USER_NAME}
+setup_current_env_files ${USER_NAME}
+check_set_setup_user ${SETUP_ROOT}
+setup_current_env_files ${SETUP_ROOT}
 setup_lang_go
 setup_env_zsh ${SETUP_ROOT}
 setup_env_tmux ${SETUP_ROOT}
+setup_env_fonts ${SETUP_ROOT}
 setup_env_fzf ${SETUP_ROOT}
+setup_env_fzf ${USER_NAME}
 set_installed
 print_status "Done."
 }
 ## Defer setup until we have the complete script
 setup
+
+}
