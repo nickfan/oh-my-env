@@ -1,96 +1,97 @@
 # oh-my-env
 
-my env setup script
+环境配置脚本
 
-## Translations
+## 翻译
 
 [English](README.md)
 [简体中文](README.zh_CN.md)
 
-## Customize
+## 自定义
 
-If you want to customize settings before install
-you could download and edit ~/.omerc file:
-download example file:
+如果安装前需要做一些自定义配置则可以下载样例配置并编辑~/.omerc配置文件
+
+下载样例配置文件：
 ```sh
 curl -fsSL -o ~/.omerc.example https://raw.githubusercontent.com/nickfan/oh-my-env/master/.omerc.example
 cp -af ~/.omerc.example ~/.omerc
 ```
-For CN region:
+中国国内区域下载加速：
 ```sh
 curl -fsSL -o ~/.omerc.example https://gitee.com/nickfan/oh-my-env/raw/master/.omerc.example
 cp -af ~/.omerc.example ~/.omerc
 ```
 
-## Install
+## 安装
 
-use curl run with sudo
+使用curl指令加sudo模式
 ```sh
 curl -fsSL https://raw.githubusercontent.com/nickfan/oh-my-env/master/setup.sh | sudo -E bash -
 ```
-or use wget run with sudo
+
+或使用wget指令加sudo模式
 ```sh
 wget -qO- https://raw.githubusercontent.com/nickfan/oh-my-env/master/setup.sh | sudo -E bash -
 ```
 
-or use curl run as root
+或在root管理员权限下使用curl指令
 ```sh
 curl -fsSL https://raw.githubusercontent.com/nickfan/oh-my-env/master/setup.sh | bash -
 ```
-or use wget run as root
+或在root管理员权限下使用wget指令
 ```sh
 wget -qO- https://raw.githubusercontent.com/nickfan/oh-my-env/master/setup.sh | bash -
 ```
 
-For CN region:
+中国国内区域下载加速：
 
-use curl run with sudo
+使用curl指令加sudo模式
 ```sh
 curl -fsSL https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh | sudo -E bash -
 ```
-or use wget run with sudo
+或使用wget指令加sudo模式
 ```sh
 wget -qO- https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh | sudo -E bash -
 ```
 
-or use curl run as root
+或在root管理员权限下使用curl指令
 ```sh
 curl -fsSL https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh | bash -
 ```
-or use wget run as root
+或在root管理员权限下使用wget指令
 ```sh
 wget -qO- https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh | bash -
 ```
 
-download and run at local:
+下载脚本到本地后在本地运行
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/nickfan/oh-my-env/master/setup.sh
 ```
-For CN region:
+中国国内区域下载加速：
 ```sh
 curl -fsSL https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh
 ```
 
-noninteractive mode:
+非交互模式：
 
 ```sh
 cat setup.sh | sudo -E bash -
 ```
 
-or run as root
+或在root管理员权限下执行
 
 ```sh
 cat setup.sh | bash -
 ```
 
-interactive mode:
+交互模式：
 
 ```sh
 sudo bash ./setup.sh
 ```
 
-or run as root
+或在root管理员权限下执行
 
 ```sh
 bash ./setup.sh
