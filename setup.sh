@@ -48,17 +48,24 @@
 
 INSTALL_PKG_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates software-properties-common openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
 zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy"
-INSTALL_PKG_SYSTEM="vim-nox neovim python-neovim python3-neovim xxd wamerican \
-build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven \
-redis-tools mysql-client nodejs yarn"
+INSTALL_PKG_SYSTEM="redis-tools mysql-client nodejs yarn vim-nox neovim python-neovim python3-neovim xxd wamerican \
+build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven"
 PKG_VER_wkhtmltox="0.12.6-1"
 PKG_VER_fd="8.2.1"
 PKG_VER_ripgrep="12.1.1"
 PKG_VER_bat="0.17.1"
 PKG_VER_go="1.17"
+PKG_VER_node_major="12"
 
+SETUP_ACT_HOME=${HOME}
+SETUP_ROOT_HOME="/root"
+SETUP_USER_HOME=${SETUP_ACT_HOME}
 
 init_env_conf(){
+  SERVER_REGION_CN_DEFAULT="auto"
+  USE_PROXY_DEFAULT="no"
+  PROXY_URI_DEFAULT="http://127.0.0.1:1884"
+  NO_PROXY_LIST_DEFAULT="localhost,.example.com,169.254.169.254,128.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24"
   USER_NAME_DEFAULT="www"
   USER_PASSWORD_DEFAULT="abc123"
   CONDA_ENV_NAME_DEFAULT="myenv"
@@ -67,6 +74,10 @@ init_env_conf(){
   TERM_DEFAULT="xterm-256color"
   ZSH_THEME_DEFAULT="powerlevel10k"
 
+  SERVER_REGION_CN=${SERVER_REGION_CN_DEFAULT}
+  USE_PROXY=${USE_PROXY_DEFAULT}
+  PROXY_URI=${PROXY_URI_DEFAULT}
+  NO_PROXY_LIST=${NO_PROXY_LIST_DEFAULT}
   USER_NAME=${USER_NAME_DEFAULT}
   USER_PASSWORD=${USER_PASSWORD_DEFAULT}
   CONDA_ENV_NAME=${CONDA_ENV_NAME_DEFAULT}
@@ -75,15 +86,19 @@ init_env_conf(){
   TERM=${TERM_DEFAULT}
   ZSH_THEME=${ZSH_THEME_DEFAULT}
 
-  if [ -f "${HOME}/.omerc" ];then
-    source "${HOME}/.omerc";
+  if [ -f "${SETUP_ACT_HOME}/.omerc" ];then
+    source "${SETUP_ACT_HOME}/.omerc";
   else
-    if [ -f "${HOME}/.omerc.example" ];then
-      cp -af "${HOME}/.omerc.example" "${HOME}/.omerc";
-      source "${HOME}/.omerc";
-      chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc;
+    if [ -f "${SETUP_ACT_HOME}/.omerc.example" ];then
+      cp -af "${SETUP_ACT_HOME}/.omerc.example" "${SETUP_ACT_HOME}/.omerc";
+      source "${SETUP_ACT_HOME}/.omerc";
+      chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.omerc;
     else
-      cat >${HOME}/.omerc.example <<EOL
+      cat >${SETUP_ACT_HOME}/.omerc.example <<EOL
+SERVER_REGION_CN=${SERVER_REGION_CN_DEFAULT}
+USE_PROXY=${USE_PROXY_DEFAULT}
+PROXY_URI=${PROXY_URI_DEFAULT}
+NO_PROXY_LIST=${NO_PROXY_LIST_DEFAULT}
 USER_NAME=${USER_NAME_DEFAULT}
 USER_PASSWORD=${USER_PASSWORD_DEFAULT}
 CONDA_ENV_NAME=${CONDA_ENV_NAME_DEFAULT}
@@ -91,23 +106,27 @@ CONDA_ENV_PY_VER=${CONDA_ENV_PY_VER_DEFAULT}
 TZ=${TZ_DEFAULT}
 TERM=${TERM_DEFAULT}
 ZSH_THEME=${ZSH_THEME_DEFAULT}
-
 EOL
 chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
     fi
   fi
 
   if [ ${SCRIPT_NONINTERACTIVE} -eq 0 ] ;then
-    read -e -p "USER_NAME: [${USER_NAME}] " -i ${USER_NAME} USER_NAME
-    read -e -p "USER_PASSWORD: [${USER_PASSWORD}] " -i ${USER_PASSWORD} USER_PASSWORD
-    read -e -p "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] " -i ${CONDA_ENV_NAME} CONDA_ENV_NAME
-    read -e -p "CONDA_ENV_PY_VER: [${CONDA_ENV_PY_VER}] " -i ${CONDA_ENV_PY_VER} CONDA_ENV_PY_VER
-    read -e -p "TZ: [${TZ}] " -i ${TZ} TZ
-    read -e -p "TERM: [${TERM}] " -i ${TERM} TERM
-    read -e -p "ZSH_THEME: [${ZSH_THEME}] " -i ${ZSH_THEME} ZSH_THEME
+    read -e -p "SERVER_REGION_CN: [${SERVER_REGION_CN}] " SERVER_REGION_CN
+    read -e -p "USE_PROXY: [${USE_PROXY}] " USE_PROXY
+    read -e -p "PROXY_URI: [${PROXY_URI}] " PROXY_URI
+    read -e -p "USER_NAME: [${USER_NAME}] " USER_NAME
+    read -e -p "USER_PASSWORD: [${USER_PASSWORD}] " USER_PASSWORD
+    read -e -p "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] " CONDA_ENV_NAME
+    read -e -p "CONDA_ENV_PY_VER: [${CONDA_ENV_PY_VER}] " CONDA_ENV_PY_VER
+    read -e -p "TZ: [${TZ}] " TZ
+    read -e -p "TERM: [${TERM}] " TERM
+    read -e -p "ZSH_THEME: [${ZSH_THEME}] " ZSH_THEME
   else
-    DEBIAN_FRONTEND="noninteractive"
+    DEBIAN_FRONTEND=noninteractive
   fi
+  SETUP_USER_HOME="/home/${USER_NAME}"
+
   echo "USER_NAME: [${USER_NAME}] "
   echo "USER_PASSWORD: [${USER_PASSWORD}] "
   echo "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] "
@@ -139,6 +158,7 @@ if [ -z ${SCRIPT_NONINTERACTIVE} ];then
 else
   if [ ${SCRIPT_NONINTERACTIVE} -eq 1 ] ;then
     SCRIPT_NONINTERACTIVE=1
+    DEBIAN_FRONTEND=noninteractive
     export DEBIAN_FRONTEND=noninteractive
   else
     SCRIPT_NONINTERACTIVE=0
@@ -163,7 +183,54 @@ if test -t 1; then # if terminal
         white="$(tput setaf 7)"
     fi
 fi
+setup_env_set_proxy(){
+      cat >${SETUP_ACT_HOME}/.nopx.sh <<EOL
+#!/usr/bin/env bash
+unset http_proxy
+unset https_proxy
+unset ftp_proxy
+unset all_proxy
+EOL
+  if [[ "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+    if [ ! -z ${PROXY_URI} ];then
+      echo 'Acquire::http::Proxy "${PROXY_URI}";' >${SETUP_ACT_HOME}/.apt_proxy.conf
+      cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
+#!/usr/bin/env bash
+export https_proxy="${PROXY_URI}";
+export http_proxy="${PROXY_URI}";
+export all_proxy="${PROXY_URI}";
+export no_proxy="${NO_PROXY_LIST}"
+EOL
+    else
+      touch ${SETUP_ACT_HOME}/.apt_proxy.conf
+      cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
+#!/usr/bin/env bash
+export https_proxy=
+export http_proxy=
+export all_proxy=
+export no_proxy=
+EOL
+    fi
+  else
+    cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
+#!/usr/bin/env bash
+export https_proxy=
+export http_proxy=
+export all_proxy=
+export no_proxy=
+EOL
+    touch ${SETUP_ACT_HOME}/.apt_proxy.conf
+  fi
+  chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.apt_proxy.conf;
+  chmod +x ${SETUP_ACT_HOME}/.setpx.sh;
+  chmod +x ${SETUP_ACT_HOME}/.nopx.sh;
+  chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.setpx.sh;
+  chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.nopx.sh;
 
+  if [[ "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+    source ${SETUP_ACT_HOME}/.setpx.sh;
+  fi
+}
 print_status() {
     echo
     echo "## $1"
@@ -216,11 +283,16 @@ check_root(){
     exit 1;
   fi
 }
-
-update_apt_source(){
-  apt-get update;
+check_url_is_ok(){
+  status_code=$(curl --connect-timeout 15 --max-time 20 -s -o /dev/null -w "%{http_code}" ${1})
+  if [ "${status_code}" = "000" ]; then
+    # 1 = false
+    return 1
+  else
+    # 0 = true
+    return 0
+  fi
 }
-
 base_env_check_setup(){
 
 if $(uname -m | grep -Eq ^armv6); then
@@ -253,13 +325,13 @@ fi
 
 # Populating Cache
 print_status "Populating apt-get cache..."
-exec_cmd 'apt-get update'
+exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
 
 if [ "X${PRE_INSTALL_PKGS}" != "X" ]; then
     print_status "Installing packages required for setup:${PRE_INSTALL_PKGS}..."
     # This next command needs to be redirected to /dev/null or the script will bork
     # in some environments
-    exec_cmd "apt-get install -y ${PRE_INSTALL_PKGS} > /dev/null 2>&1"
+    exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y ${PRE_INSTALL_PKGS} > /dev/null 2>&1"
 fi
 
 IS_PRERELEASE=$(lsb_release -d | grep 'Ubuntu .*development' >& /dev/null; echo $?)
@@ -285,7 +357,7 @@ setup_dist_user_group(){
 }
 
 install_package_base(){
-  exec_cmd "apt-get install -y --no-install-recommends ${INSTALL_PKG_BASE} > /dev/null 2>&1"
+  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_BASE}"
 }
 
 setup_system_env_conf(){
@@ -311,14 +383,14 @@ setup_user_root_profile(){
     echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile
 }
 update_package_source(){
-  curl -fsSL https://deb.nodesource.com/setup_12.x | bash -
+  curl -fsSL https://deb.nodesource.com/setup_${PKG_VER_node_major}.x | bash -
   curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
   echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
   add-apt-repository -y ppa:neovim-ppa/stable
-  exec_cmd 'apt-get update'
+  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
 }
 install_package_system(){
-  exec_cmd "apt-get install -y --no-install-recommends ${INSTALL_PKG_SYSTEM} > /dev/null 2>&1"
+  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_SYSTEM}"
 }
 setup_current_env_files(){
   mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
@@ -338,7 +410,11 @@ setup_package_addons(){
     dpkg -i bat_${PKG_VER_bat}_amd64.deb
 }
 setup_lang_go(){
-    exec_cmd "wget https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+    GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+    if [ ! check_url_is_ok "${GOLANG_DL_URL}" ];then
+        GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
+    fi
+    exec_cmd "wget ${GOLANG_DL_URL}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf go${PKG_VER_go}.linux-amd64.tar.gz && \
 echo $' \n\
 export GOROOT="/usr/local/go" \n\
@@ -417,8 +493,8 @@ setup() {
 check_installed
 check_root
 print_status "Installing ..."
-base_env_check_setup
 init_env_conf
+base_env_check_setup
 setup_dist_user_group
 install_package_base
 setup_system_env_conf
@@ -437,4 +513,3 @@ print_status "Done."
 }
 ## Defer setup until we have the complete script
 setup
-
