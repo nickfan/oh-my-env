@@ -4,8 +4,8 @@ my env setup script
 
 ## Translations
 
-[English](README.md)
-[简体中文](README.zh_CN.md)
+* [English](README.md)
+* [简体中文](README.zh_CN.md)
 
 ## Customize
 
