@@ -423,9 +423,9 @@ setup_package_addons(){
 }
 setup_lang_go(){
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
-    if [[ check_url_is_ok "${GOLANG_DL_URL}" -ne 0 ]];then
-        GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
-    fi
+#    if [ check_url_is_ok "${GOLANG_DL_URL}" ];then
+#        GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
+#    fi
     exec_cmd "wget ${GOLANG_DL_URL}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf go${PKG_VER_go}.linux-amd64.tar.gz && \
 echo $' \n\
@@ -549,12 +549,12 @@ set_user_shell ${USER_NAME}
 setup_current_env_files ${USER_NAME}
 check_set_setup_user ${SETUP_ROOT}
 setup_current_env_files ${SETUP_ROOT}
-setup_lang_go
 setup_env_zsh ${SETUP_ROOT}
 setup_env_tmux ${SETUP_ROOT}
 setup_env_fonts ${SETUP_ROOT}
 setup_env_fzf ${SETUP_ROOT}
 setup_env_fzf ${USER_NAME}
+setup_lang_go
 set_installed
 print_status "Done."
 }
