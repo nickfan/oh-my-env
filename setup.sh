@@ -132,6 +132,9 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   SETUP_USER=${USER_NAME}
   SETUP_USER_HOME="/home/${USER_NAME}"
   SETUP_USER_HOME_DEFAULT="/home/${USER_NAME}"
+  echo "SERVER_REGION_CN: [${SERVER_REGION_CN}] "
+  echo "USE_PROXY: [${USE_PROXY}] "
+  echo "PROXY_URI: [${PROXY_URI}] "
   echo "USER_NAME: [${USER_NAME}] "
   echo "USER_PASSWORD: [${USER_PASSWORD}] "
   echo "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] "
@@ -192,34 +195,24 @@ if test -t 1; then # if terminal
     fi
 fi
 setup_env_set_proxy(){
-      cat >${SETUP_ACT_HOME}/.nopx.sh <<EOL
+  cat >${SETUP_ACT_HOME}/.nopx.sh <<EOL
 #!/usr/bin/env bash
 unset http_proxy
 unset https_proxy
 unset ftp_proxy
 unset all_proxy
 EOL
-  if [[ "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
-    if [ ! -z ${PROXY_URI} ];then
-      echo 'Acquire::http::Proxy "${PROXY_URI}";' >${SETUP_ACT_HOME}/.apt_proxy.conf
-      cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
+  if [ ! -z ${PROXY_URI} ];then
+    echo 'Acquire::http::Proxy "${PROXY_URI}";' >${SETUP_ACT_HOME}/.apt_proxy.conf
+    cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
 #!/usr/bin/env bash
 export https_proxy="${PROXY_URI}";
 export http_proxy="${PROXY_URI}";
 export all_proxy="${PROXY_URI}";
 export no_proxy="${NO_PROXY_LIST}"
 EOL
-    else
-      touch ${SETUP_ACT_HOME}/.apt_proxy.conf
-      cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
-#!/usr/bin/env bash
-export https_proxy=
-export http_proxy=
-export all_proxy=
-export no_proxy=
-EOL
-    fi
   else
+    touch ${SETUP_ACT_HOME}/.apt_proxy.conf
     cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
 #!/usr/bin/env bash
 export https_proxy=
@@ -227,15 +220,13 @@ export http_proxy=
 export all_proxy=
 export no_proxy=
 EOL
-    touch ${SETUP_ACT_HOME}/.apt_proxy.conf
   fi
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.apt_proxy.conf;
   chmod +x ${SETUP_ACT_HOME}/.setpx.sh;
   chmod +x ${SETUP_ACT_HOME}/.nopx.sh;
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.setpx.sh;
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.nopx.sh;
-
-  if [[ "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+  if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
     source ${SETUP_ACT_HOME}/.setpx.sh;
   fi
 }
