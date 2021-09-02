@@ -56,10 +56,14 @@ PKG_VER_ripgrep="12.1.1"
 PKG_VER_bat="0.17.1"
 PKG_VER_go="1.17"
 PKG_VER_node_major="12"
+PKG_VER_zsh_in_docker="1.1.1"
 
 SETUP_ACT_HOME=${HOME}
 SETUP_ROOT_HOME="/root"
+SETUP_USER="root"
+SETUP_ROOT="root"
 SETUP_USER_HOME=${SETUP_ACT_HOME}
+SETUP_USER_HOME_DEFAULT=${SETUP_ACT_HOME}
 
 init_env_conf(){
   SERVER_REGION_CN_DEFAULT="auto"
@@ -125,8 +129,9 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   else
     DEBIAN_FRONTEND=noninteractive
   fi
+  SETUP_USER=${USER_NAME}
   SETUP_USER_HOME="/home/${USER_NAME}"
-
+  SETUP_USER_HOME_DEFAULT="/home/${USER_NAME}"
   echo "USER_NAME: [${USER_NAME}] "
   echo "USER_PASSWORD: [${USER_PASSWORD}] "
   echo "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] "
@@ -138,6 +143,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
 
 ACT_USER=${SUDO_USER:-$(whoami)}
 ACT_GROUP=$(id -gn ${ACT_USER})
+SETUP_USER=${ACT_USER}
 if [ -z ${SCRIPT_NONINTERACTIVE} ];then
   SCRIPT_NONINTERACTIVE=1
   SCRIPT_INTERACTIVE_CONFIRM="y"
@@ -164,6 +170,7 @@ else
     SCRIPT_NONINTERACTIVE=0
   fi
 fi
+
 
 if test -t 1; then # if terminal
     ncolors=$(which tput > /dev/null && tput colors) # supports color
@@ -266,9 +273,17 @@ exec_cmd_nobail() {
 exec_cmd() {
     exec_cmd_nobail "$1" || bail
 }
-
+check_set_setup_user(){
+  SETUP_USER=${1:-${USER_NAME}}
+  if [[ "${SETUP_USER}" == "root" ]];then
+    SETUP_USER_HOME=${SETUP_ROOT_HOME}
+  else
+    SETUP_USER_HOME="/home/${SETUP_USER}"
+  fi
+#  return ${SETUP_USER}
+}
 check_installed(){
-  if [ -f "${HOME}/.ome.installed" ];then
+  if [ -f "${SETUP_ACT_HOME}/.ome.installed" ];then
     print_bold "Already installed now exit."
     exit 1;
   fi
@@ -370,17 +385,19 @@ setup_system_env_files(){
     ln -nfs /data/var /data/app/var && \
     chown -R ${USER_NAME}:${USER_NAME} /data/app && \
     chown -R ${USER_NAME}:${USER_NAME} /data/var && \
-    ln -nfs /home/${USER_NAME} /home/user && \
     ln -nfs /data/app /data/wwwroot && \
     ln -nfs /data/var/log /data/wwwlogs && \
     ln -nfs /data/app /home/wwwroot && \
     ln -nfs /data/var/log /home/wwwlogs && \
     ln -nfs /home /Users
+    if [[ "${USER_NAME}" != "user" && "${USER_NAME}" != "root" ]];then
+      ln -nfs /home/${USER_NAME} /home/user
+    fi
 }
 setup_user_root_profile(){
-    sed -i -E "/\.myenvset/d" /root/.profile && \
-    echo "export PATH=$HOME/.local/bin:$HOME/bin:$PATH:/usr/local/go/bin" >> /root/.profile && \
-    echo "if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi" >> /root/.profile
+    sed -i -E "/\.myenvset/d" ${SETUP_ROOT_HOME}/.profile && \
+    echo "export PATH=\$HOME/.local/bin:\$HOME/bin:\$PATH:/usr/local/go/bin" >> ${SETUP_ROOT_HOME}/.profile && \
+    echo "if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi" >> ${SETUP_ROOT_HOME}/.profile
 }
 update_package_source(){
   curl -fsSL https://deb.nodesource.com/setup_${PKG_VER_node_major}.x | bash -
@@ -393,21 +410,23 @@ install_package_system(){
   exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_SYSTEM}"
 }
 setup_current_env_files(){
-  mkdir -p ~/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-  mkdir -p ~/{.ssh/{config.d,ctrl.d},.local/bin,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
-  mkdir -p ~/Downloads/temp && \
+  check_set_setup_user ${1:-${SETUP_USER}}
+  mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
+  mkdir -p ${SETUP_USER_HOME}/{.ssh/{config.d,ctrl.d},.local/bin,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
+  mkdir -p ${SETUP_USER_HOME}/Downloads/temp && \
   ln -nfs /data/app ~/Code
 }
 setup_package_addons(){
-    mkdir -p ~/setup && cd ~/setup
-    exec_cmd "wget https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
-    dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
-    exec_cmd "wget https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
-    dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
-    exec_cmd "wget https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
-    dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
-    exec_cmd "wget https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
-    dpkg -i bat_${PKG_VER_bat}_amd64.deb
+  check_set_setup_user ${1:-${SETUP_USER}}
+  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
+  exec_cmd "wget https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
+  dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
+  exec_cmd "wget https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
+  dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
+  exec_cmd "wget https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
+  dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
+  exec_cmd "wget https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
+  dpkg -i bat_${PKG_VER_bat}_amd64.deb
 }
 setup_lang_go(){
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
@@ -423,8 +442,9 @@ export PATH="$PATH:/usr/local/go/bin" \n\
 }
 
 setup_env_zsh(){
-    exec_cmd "wget -O ~/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/master/config/p10k-lean.zsh"
-    bash -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.1/zsh-in-docker.sh)" -- \
+  check_set_setup_user ${1:-${SETUP_USER}}
+  exec_cmd "wget -O ${SETUP_USER_HOME}/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/master/config/p10k-lean.zsh"
+  sudo -H -u ${SETUP_USER} bash -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${PKG_VER_zsh_in_docker}/zsh-in-docker.sh)" -- \
     -t powerlevel10k/powerlevel10k \
     -p git \
     -p ssh-agent \
@@ -455,19 +475,20 @@ setup_env_zsh(){
     -a 'export PATH=$HOME/.local/bin:$HOME/bin:$PATH:/usr/local/go/bin' \
     -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
     -a 'if [ "$TERM" = "xterm-256color" ] && [ -z "$INSIDE_EMACS" ]; then test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh";fi'
-    sed -i -E "/POWERLEVEL9K_/d" /root/.zshrc && \
-    cp -af /root/.oh-my-zsh /home/${USER_NAME}/ && \
-    cp -af /root/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
-    cp -af /root/.p10k.zsh /home/${USER_NAME}/ && \
+    sed -i -E "/POWERLEVEL9K_/d" ${SETUP_USER_HOME}/.zshrc && \
+    cp -af ${SETUP_USER_HOME}/.oh-my-zsh /home/${USER_NAME}/ && \
+    cp -af ${SETUP_USER_HOME}/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
+    cp -af ${SETUP_USER_HOME}/.p10k.zsh /home/${USER_NAME}/ && \
     chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.oh-my-zsh && \
     chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
     chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.p10k.zsh
 }
 setup_env_tmux(){
-  cd ~ && git clone https://github.com/gpakosz/.tmux.git && \
-    ln -s -f .tmux/.tmux.conf && \
-    cp .tmux/.tmux.conf.local . && \
-    sed -i -E '/^# -- clipboard/,$d' ~/.tmux.conf.local && \
+  check_set_setup_user ${1:-${SETUP_USER}}
+  sudo -H -u ${SETUP_USER} bash -c "cd ${SETUP_USER_HOME} && git clone https://github.com/gpakosz/.tmux.git ${SETUP_USER_HOME}/.tmux && \
+    ln -nfs -f ${SETUP_USER_HOME}/.tmux/.tmux.conf ${SETUP_USER_HOME}/.tmux.conf && \
+    cp ${SETUP_USER_HOME}/.tmux/.tmux.conf.local ${SETUP_USER_HOME}/"
+    sed -i -E '/^# -- clipboard/,$d' ${SETUP_USER_HOME}/.tmux.conf.local && \
     echo $' \n\
 tmux_conf_copy_to_os_clipboard=true \n\
 bind - splitw -v # vertical split (prefix -)  \n\
@@ -480,12 +501,13 @@ unbind C-a \n\
 unbind C-b \n\
 set -g prefix C-g \n\
 bind C-g send-prefix \n\
-' >> ~/.tmux.conf.local
-  cp -af /root/.tmux.conf.local /home/${USER_NAME}/ && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux.conf.local
+' >> ${SETUP_USER_HOME}/.tmux.conf.local
+  cp -af ${SETUP_USER_HOME}/.tmux.conf.local /home/${USER_NAME}/ && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux.conf.local
 }
 setup_env_fzf(){
-  if [ ! -d ~/.fzf ];then
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
+  check_set_setup_user ${1:-${SETUP_USER}}
+  if [ ! -d ${SETUP_USER_HOME}/.fzf ];then
+    sudo -H -u ${SETUP_USER} bash -c "git clone --depth 1 https://github.com/junegunn/fzf.git ${SETUP_USER_HOME}/.fzf && ${SETUP_USER_HOME}/.fzf/install"
   fi
 }
 
@@ -502,12 +524,13 @@ setup_system_env_files
 setup_user_root_profile
 update_package_source
 install_package_system
-setup_current_env_files
-setup_package_addons
+check_set_setup_user ${SETUP_ROOT}
+setup_current_env_files ${SETUP_ROOT}
+setup_package_addons ${SETUP_ROOT}
 setup_lang_go
-setup_env_zsh
-setup_env_tmux
-setup_env_fzf
+setup_env_zsh ${SETUP_ROOT}
+setup_env_tmux ${SETUP_ROOT}
+setup_env_fzf ${SETUP_ROOT}
 set_installed
 print_status "Done."
 }
