@@ -424,7 +424,7 @@ setup_package_addons(){
 setup_lang_go(){
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
     if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
-        GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
+        GOLANG_DL_URL="https://golang.google.cn/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
     fi
     exec_cmd "wget ${GOLANG_DL_URL}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf go${PKG_VER_go}.linux-amd64.tar.gz && \
