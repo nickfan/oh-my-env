@@ -293,7 +293,7 @@ check_root(){
   fi
 }
 check_url_is_ok(){
-  status_code=$(curl --connect-timeout 15 --max-time 20 -s -o /dev/null -w "%{http_code}" ${1})
+  status_code=$(curl --connect-timeout ${2:-15} --max-time ${3:-20} -s -o /dev/null -w "%{http_code}" ${1})
   if [ "${status_code}" = "000" ]; then
     # 1 = false
     return 1
@@ -423,9 +423,9 @@ setup_package_addons(){
 }
 setup_lang_go(){
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
-#    if [ check_url_is_ok "${GOLANG_DL_URL}" ];then
-#        GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
-#    fi
+    if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
+        GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
+    fi
     exec_cmd "wget ${GOLANG_DL_URL}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf go${PKG_VER_go}.linux-amd64.tar.gz && \
 echo $' \n\
@@ -514,8 +514,8 @@ setup_env_fzf(){
 setup_env_fonts(){
   check_set_setup_user ${1:-${SETUP_USER}}
   mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup
-  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/setup/font_powerline  && \
-  mkdir ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/setup/font_powerline && bash ${SETUP_USER_HOME}/setup/font_powerline/install.sh && \
+  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/setup/font_powerline && \
+  mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/setup/font_powerline && bash ${SETUP_USER_HOME}/setup/font_powerline/install.sh && \
   cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip Hack.zip && \
   cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip Meslo.zip && \
   fc-cache -vf"
