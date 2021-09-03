@@ -175,8 +175,6 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   echo "TERM: [${TERM}] "
   echo "ZSH_THEME: [${ZSH_THEME}] "
   setup_env_set_proxy
-  exit 1
-
 }
 
 ACT_USER=${SUDO_USER:-$(whoami)}
