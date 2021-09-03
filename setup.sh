@@ -49,7 +49,9 @@
 INSTALL_PKG_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates software-properties-common openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
 zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy"
 INSTALL_PKG_SYSTEM="redis-tools mysql-client nodejs yarn vim-nox neovim python-neovim python3-neovim xxd wamerican \
-build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev zookeeper zookeeper-bin libzookeeper-mt-dev gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven"
+build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc lnav htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common zookeeper zookeeper-bin \
+gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven"
+INSTALL_PKG_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev"
 PKG_VER_wkhtmltox="0.12.6-1"
 PKG_VER_fd="8.2.1"
 PKG_VER_ripgrep="12.1.1"
@@ -340,6 +342,7 @@ if [ "X${PRE_INSTALL_PKGS}" != "X" ]; then
     # in some environments
     exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y ${PRE_INSTALL_PKGS} > /dev/null 2>&1"
 fi
+exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_BASE}"
 
 IS_PRERELEASE=$(lsb_release -d | grep 'Ubuntu .*development' >& /dev/null; echo $?)
 if [[ $IS_PRERELEASE -eq 0 ]]; then
@@ -363,17 +366,13 @@ setup_dist_user_group(){
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME}
   fi
 }
-
-install_package_base(){
-  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_BASE}"
-}
-
-setup_system_env_conf(){
-    echo 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"' >> /etc/environment && \
-    echo 'GOROOT="/usr/local/go"' >> /etc/environment && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-}
 setup_system_env_files(){
+  echo "setup_system_env_files : ${USER_NAME}"
+  sed -i -E "/JAVA_HOME=/d" /etc/environment && \
+  echo 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"' >> /etc/environment && \
+  sed -i -E "/GOROOT=/d" /etc/environment && \
+  echo 'GOROOT="/usr/local/go"' >> /etc/environment && \
+  ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
   mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
     chown -R ${USER_NAME}:${USER_NAME} /data/app && \
@@ -401,6 +400,7 @@ update_package_source(){
 }
 install_package_system(){
   exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_SYSTEM}"
+  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_LIBS}"
 }
 setup_current_env_files(){
   check_set_setup_user ${1:-${SETUP_USER}}
@@ -535,8 +535,6 @@ print_status "Installing ..."
 init_env_conf
 base_env_check_setup
 setup_dist_user_group
-install_package_base
-setup_system_env_conf
 setup_system_env_files
 setup_user_root_profile
 update_package_source
@@ -560,5 +558,3 @@ print_status "Done."
 }
 ## Defer setup until we have the complete script
 setup
-
-}
