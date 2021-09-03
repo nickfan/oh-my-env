@@ -59,6 +59,7 @@ PKG_VER_bat="0.17.1"
 PKG_VER_go="1.17"
 PKG_VER_node_major="12"
 PKG_VER_zsh_in_docker="1.1.1"
+CHECK_PROXY_URL="https://www.google.com/"
 
 SETUP_ACT_HOME=${HOME}
 SETUP_ROOT_HOME="/root"
@@ -69,7 +70,7 @@ SETUP_USER_HOME_DEFAULT=${SETUP_ACT_HOME}
 
 init_env_conf(){
   SERVER_REGION_CN_DEFAULT="auto"
-  USE_PROXY_DEFAULT="no"
+  USE_PROXY_DEFAULT="auto"
   PROXY_URI_DEFAULT="http://127.0.0.1:1884"
   NO_PROXY_LIST_DEFAULT="localhost,.example.com,169.254.169.254,128.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24"
   USER_NAME_DEFAULT="www"
@@ -118,22 +119,51 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   fi
 
   if [ ${SCRIPT_NONINTERACTIVE} -eq 0 ] ;then
-    read -e -p "SERVER_REGION_CN: [${SERVER_REGION_CN}] " SERVER_REGION_CN
-    read -e -p "USE_PROXY: [${USE_PROXY}] " USE_PROXY
-    read -e -p "PROXY_URI: [${PROXY_URI}] " PROXY_URI
-    read -e -p "USER_NAME: [${USER_NAME}] " USER_NAME
-    read -e -p "USER_PASSWORD: [${USER_PASSWORD}] " USER_PASSWORD
-    read -e -p "CONDA_ENV_NAME: [${CONDA_ENV_NAME}] " CONDA_ENV_NAME
-    read -e -p "CONDA_ENV_PY_VER: [${CONDA_ENV_PY_VER}] " CONDA_ENV_PY_VER
-    read -e -p "TZ: [${TZ}] " TZ
-    read -e -p "TERM: [${TERM}] " TERM
-    read -e -p "ZSH_THEME: [${ZSH_THEME}] " ZSH_THEME
+    read -e -p "SERVER_REGION_CN: " -i ${SERVER_REGION_CN} SERVER_REGION_CN
+    read -e -p "USE_PROXY: " -i ${USE_PROXY} USE_PROXY
+    read -e -p "PROXY_URI: " -i ${PROXY_URI} PROXY_URI
+    read -e -p "USER_NAME: " -i ${USER_NAME} USER_NAME
+    read -e -sp "USER_PASSWORD: " -i ${USER_PASSWORD} USER_PASSWORD
+    echo ""
+    read -e -p "CONDA_ENV_NAME: " -i ${CONDA_ENV_NAME} CONDA_ENV_NAME
+    read -e -p "CONDA_ENV_PY_VER: " -i ${CONDA_ENV_PY_VER} CONDA_ENV_PY_VER
+    read -e -p "TZ: " -i ${TZ} TZ
+    read -e -p "TERM: " -i ${TERM} TERM
+    read -e -p "ZSH_THEME: " -i ${ZSH_THEME} ZSH_THEME
   else
     DEBIAN_FRONTEND=noninteractive
   fi
   SETUP_USER=${USER_NAME}
   SETUP_USER_HOME="/home/${USER_NAME}"
   SETUP_USER_HOME_DEFAULT="/home/${USER_NAME}"
+
+  if [ ${SERVER_REGION_CN} == "auto" ];then
+    echo "detecting server region in CN "
+    SERVER_REGION_CODE=$(curl -fsSL https://ipapi.co/country_code)
+    if [ ${SERVER_REGION_CODE} == "CN" ] || [ ${SERVER_REGION_CODE} == "cn" ];then
+      SERVER_REGION_CN="y"
+    else
+      SERVER_REGION_CN="n"
+    fi
+  fi
+  if [ ${USE_PROXY} == "auto" ];then
+    echo "detecting if need use proxy..."
+    if ! check_url_is_ok "${CHECK_PROXY_URL}" ; then
+      echo "checking if proxy connection ok..."
+      if ! check_proxy_is_ok "${PROXY_URI}" ; then
+        echo "proxy connection invalid.";
+        USE_PROXY="n"
+      else
+        USE_PROXY="y"
+      fi
+    fi
+  fi
+
+  echo "======================"
+  echo "ACT_USER: [${ACT_USER}]"
+  echo "ACT_GROUP: [${ACT_GROUP}]"
+  echo "SETUP_USER: [${SETUP_USER}]"
+  echo "SETUP_USER: [${SETUP_USER}]"
   echo "SERVER_REGION_CN: [${SERVER_REGION_CN}] "
   echo "USE_PROXY: [${USE_PROXY}] "
   echo "PROXY_URI: [${PROXY_URI}] "
@@ -145,6 +175,8 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   echo "TERM: [${TERM}] "
   echo "ZSH_THEME: [${ZSH_THEME}] "
   setup_env_set_proxy
+  exit 1
+
 }
 
 ACT_USER=${SUDO_USER:-$(whoami)}
@@ -294,6 +326,16 @@ check_root(){
 }
 check_url_is_ok(){
   status_code=$(curl --connect-timeout ${2:-15} --max-time ${3:-20} -s -o /dev/null -w "%{http_code}" ${1})
+  if [ "${status_code}" = "000" ]; then
+    # 1 = false
+    return 1
+  else
+    # 0 = true
+    return 0
+  fi
+}
+check_proxy_is_ok(){
+  status_code=$(curl --connect-timeout ${3:-15} --max-time ${4:-20} -x ${1:-${PROXY_URI}} -s -o /dev/null -w "%{http_code}" ${2:-${CHECK_PROXY_URL}})
   if [ "${status_code}" = "000" ]; then
     # 1 = false
     return 1
