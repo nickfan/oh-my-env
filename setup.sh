@@ -554,7 +554,7 @@ install_package_system(){
     else
       INSTALL_PKGS_SEGMENT_PHP="php${PKG_VER_php_major} php${PKG_VER_php_major}-cli php${PKG_VER_php_major}-dev php${PKG_VER_php_major}-fpm php${PKG_VER_php_major}-curl php${PKG_VER_php_major}-gd php${PKG_VER_php_major}-gmp php${PKG_VER_php_major}-intl php${PKG_VER_php_major}-json php${PKG_VER_php_major}-mbstring php${PKG_VER_php_major}-mysql php${PKG_VER_php_major}-readline php${PKG_VER_php_major}-soap php${PKG_VER_php_major}-sqlite3 php${PKG_VER_php_major}-zip php${PKG_VER_php_major}-opcache php${PKG_VER_php_major}-xml php${PKG_VER_php_major}-raphf php${PKG_VER_php_major}-propro php-xml php-pear phpunit php-http php-apcu php-imagick php-redis php-memcached php-apcu-bc php-memcache php-msgpack php-geoip php-igbinary php-amqp libnghttp2-dev"
     fi
-    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKG_ENABLE_PHP}"
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_PHP}"
   fi
   if [[ ${INSTALL_PKG_ENABLE_LIBS} -eq 1 ]];then
     INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_LIBS}"
