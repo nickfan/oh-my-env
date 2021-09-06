@@ -45,20 +45,45 @@
 #
 #
 
+INSTALL_PKG_ENABLE_ACT_USER=1
+INSTALL_PKG_ENABLE_OPS=1
+INSTALL_PKG_ENABLE_SRV=1
+INSTALL_PKG_ENABLE_CLI=1
+INSTALL_PKG_ENABLE_PYTHON=1
+INSTALL_PKG_ENABLE_RUBY=1
+INSTALL_PKG_ENABLE_NODEJS=1
+INSTALL_PKG_ENABLE_JAVA=1
+INSTALL_PKG_ENABLE_PHP=1
+INSTALL_PKG_ENABLE_GOLANG=1
+INSTALL_PKG_ENABLE_DOCKER=1
+INSTALL_PKG_ENABLE_NGINX=1
+INSTALL_PKG_ENABLE_LIBS=1
 
-INSTALL_PKG_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 gnupg-agent apt-transport-https ca-certificates software-properties-common openssh-client openssh-server ntp ntpdate language-pack-en-base language-pack-zh-hans \
-zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy"
-INSTALL_PKG_SYSTEM="redis-tools mysql-client nodejs yarn vim-nox neovim python-neovim python3-neovim xxd wamerican \
-build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc lnav htop iftop iotop nethogs dstat multitail tig jq ncdu ranger silversearcher-ag asciinema software-properties-common zookeeper zookeeper-bin \
-gnupg2 pass rng-tools software-properties-common ruby ruby-dev python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml openjdk-8-jdk maven"
-INSTALL_PKG_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev"
+INSTALL_PKGS_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3apt-transport-https ca-certificates lsb-release software-properties-common gnupg-agent gnupg2 pass rng-tools openssh-client ntp ntpdate language-pack-en-base language-pack-zh-hans zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy locales-all"
+INSTALL_PKGS_SYSTEM="build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc tig jq"
+
+INSTALL_PKGS_SEGMENT_OPS="vim-nox neovim python-neovim python3-neovim xxd wamerican lnav htop iftop iotop nethogs dstat multitail ncdu ranger silversearcher-ag asciinema"
+INSTALL_PKGS_SEGMENT_SRV="openssh-server"
+INSTALL_PKGS_SEGMENT_CLI="redis-tools mysql-client zookeeper zookeeper-bin"
+INSTALL_PKGS_SEGMENT_PYTHON="python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml"
+INSTALL_PKGS_SEGMENT_RUBY="ruby ruby-dev"
+INSTALL_PKGS_SEGMENT_NODEJS="nodejs yarn"
+INSTALL_PKGS_SEGMENT_JAVA="openjdk-8-jdk maven"
+INSTALL_PKGS_SEGMENT_PHP=""
+INSTALL_PKGS_SEGMENT_DOCKER="docker-ce docker-ce-cli containerd.io"
+INSTALL_PKGS_SEGMENT_NGINX="nginx-extras"
+INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
+SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
+
 PKG_VER_wkhtmltox="0.12.6-1"
 PKG_VER_fd="8.2.1"
 PKG_VER_ripgrep="12.1.1"
 PKG_VER_bat="0.17.1"
 PKG_VER_go="1.17"
+PKG_VER_php_major="7.4"
 PKG_VER_node_major="12"
 PKG_VER_zsh_in_docker="1.1.1"
+
 CHECK_PROXY_URL="https://www.google.com/"
 
 SETUP_ACT_HOME=${HOME}
@@ -87,6 +112,7 @@ init_env_conf(){
   NO_PROXY_LIST=${NO_PROXY_LIST_DEFAULT}
   USER_NAME=${USER_NAME_DEFAULT}
   USER_PASSWORD=${USER_PASSWORD_DEFAULT}
+  USER_HOME="/home/${USER_NAME}"
   CONDA_ENV_NAME=${CONDA_ENV_NAME_DEFAULT}
   CONDA_ENV_PY_VER=${CONDA_ENV_PY_VER_DEFAULT}
   TZ=${TZ_DEFAULT}
@@ -123,8 +149,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
     read -e -p "USE_PROXY: " -i ${USE_PROXY} USE_PROXY
     read -e -p "PROXY_URI: " -i ${PROXY_URI} PROXY_URI
     read -e -p "USER_NAME: " -i ${USER_NAME} USER_NAME
-    read -e -sp "USER_PASSWORD: " -i ${USER_PASSWORD} USER_PASSWORD
-    echo ""
+    read -e -p "USER_PASSWORD: " -i ${USER_PASSWORD} USER_PASSWORD
     read -e -p "CONDA_ENV_NAME: " -i ${CONDA_ENV_NAME} CONDA_ENV_NAME
     read -e -p "CONDA_ENV_PY_VER: " -i ${CONDA_ENV_PY_VER} CONDA_ENV_PY_VER
     read -e -p "TZ: " -i ${TZ} TZ
@@ -137,6 +162,13 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   SETUP_USER_HOME="/home/${USER_NAME}"
   SETUP_USER_HOME_DEFAULT="/home/${USER_NAME}"
 
+  if [ ${USER_NAME} == "root" ];then
+    USER_HOME="/root"
+    SETUP_USER_HOME="/root"
+  else
+    USER_HOME="/home/${USER_NAME}"
+    SETUP_USER_HOME="/home/${USER_NAME}"
+  fi
   if [ ${SERVER_REGION_CN} == "auto" ];then
     echo "detecting server region in CN "
     SERVER_REGION_CODE=$(curl -fsSL https://ipapi.co/country_code)
@@ -268,6 +300,7 @@ EOL
       echo "no_proxy: ${no_proxy}";
     else
       echo "proxy settings file not found";
+      exit 1;
     fi
   fi
 }
@@ -325,6 +358,18 @@ check_proxy_is_ok(){
     # 0 = true
     return 0
   fi
+}
+get_my_ip() {
+    case "`uname`" in
+        Darwin)
+         myip=`echo "show State:/Network/Global/IPv4" | scutil | grep PrimaryInterface | awk '{print $3}' | xargs ifconfig | grep inet | grep -v inet6 | awk '{print $2}'`
+         ;;
+        *)
+#         myip=`ip route get 1 | awk '{print $NF;exit}'`
+         myip=`ip route get 1 | sed -n 's/^.*src \([0-9.]*\) .*$/\1/p'`
+         ;;
+  esac
+  echo $myip
 }
 
 check_set_setup_user(){
@@ -386,15 +431,7 @@ fi
 # Populating Cache
 print_status "Populating apt-get cache..."
 exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
-
-if [ "X${PRE_INSTALL_PKGS}" != "X" ]; then
-    print_status "Installing packages required for setup:${PRE_INSTALL_PKGS}..."
-    # This next command needs to be redirected to /dev/null or the script will bork
-    # in some environments
-    exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y ${PRE_INSTALL_PKGS} > /dev/null 2>&1"
-fi
-exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_BASE}"
-
+exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKGS_BASE}"
 IS_PRERELEASE=$(lsb_release -d | grep 'Ubuntu .*development' >& /dev/null; echo $?)
 if [[ $IS_PRERELEASE -eq 0 ]]; then
     print_status "Your distribution, identified as \"$(lsb_release -d -s)\", is a pre-release version of Ubuntu. EnvSetup does not maintain official support for Ubuntu versions until they are formally released."
@@ -413,17 +450,21 @@ setup_dist_user_group(){
   if id "${USER_NAME}" &>/dev/null; then
       echo 'user already exists'
   else
-    adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home /home/${USER_NAME} --gecos "User" ${USER_NAME}
+    adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home ${USER_HOME} --gecos "User" ${USER_NAME}
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME}
   fi
 }
 setup_system_env_files(){
   echo "setup_system_env_files : ${USER_NAME}"
-  sed -i -E "/JAVA_HOME=/d" /etc/environment && \
-  echo 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"' >> /etc/environment && \
-  sed -i -E "/GOROOT=/d" /etc/environment && \
-  echo 'GOROOT="/usr/local/go"' >> /etc/environment && \
   ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+  if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
+    sed -i -E "/JAVA_HOME=/d" /etc/environment && \
+    echo 'JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"' >> /etc/environment
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
+    sed -i -E "/GOROOT=/d" /etc/environment && \
+    echo 'GOROOT="/usr/local/go"' >> /etc/environment
+  fi
   mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
     ln -nfs /data/var /data/app/var && \
     chown -R ${USER_NAME}:${USER_NAME} /data/app && \
@@ -434,45 +475,140 @@ setup_system_env_files(){
     ln -nfs /data/var/log /home/wwwlogs && \
     ln -nfs /home /Users
     if [[ "${USER_NAME}" != "user" && "${USER_NAME}" != "root" ]];then
-      ln -nfs /home/${USER_NAME} /home/user
+      ln -nfs ${USER_HOME} /home/user
     fi
 }
 setup_user_root_profile(){
+    ADDON_PATH_SEG=""
+    if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
+      ADDON_PATH_SEG="${ADDON_PATH_SEG}:${SETUP_PKG_SEGMENT_GOLANG_PATH}"
+    fi
     sed -i -E "/\.myenvset/d" ${SETUP_ROOT_HOME}/.profile && \
-    echo "export PATH=\$HOME/.local/bin:\$HOME/bin:\$PATH:/usr/local/go/bin" >> ${SETUP_ROOT_HOME}/.profile && \
+    echo "export PATH=\$HOME/.local/bin:\$HOME/bin:\$PATH${ADDON_PATH_SEG}" >> ${SETUP_ROOT_HOME}/.profile && \
     echo "if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi" >> ${SETUP_ROOT_HOME}/.profile
 }
 update_package_source(){
-  add-apt-repository -y -n ppa:neovim-ppa/stable
-  curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
-  echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-  curl -fsSL https://deb.nodesource.com/setup_${PKG_VER_node_major}.x | bash -
-#  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
+  if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
+    add-apt-repository -y -n ppa:neovim-ppa/stable
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    if [[ ${SERVER_REGION_CN} == "y" ]];then
+      add-apt-repository -y -n "deb [arch=amd64] https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+    else
+      add-apt-repository -y -n "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    fi
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
+    add-apt-repository -y -n ppa:ondrej/php
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_NGINX} -eq 1 ]];then
+    add-apt-repository -y -n ppa:nginx/stable
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_NODEJS} -eq 1 ]];then
+    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+    echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+    curl -fsSL https://deb.nodesource.com/setup_${PKG_VER_node_major}.x | bash -
+  else
+    exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
+  fi
 }
 install_package_system(){
-  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_SYSTEM}"
-  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKG_LIBS}"
+  INSTALL_PKGS_SETUP=${INSTALL_PKGS_SYSTEM}
+  if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_OPS}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_SRV} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_SRV}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_CLI} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_CLI}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_PYTHON} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_PYTHON}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_RUBY} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_RUBY}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_NODEJS} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_NODEJS}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_JAVA}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_DOCKER}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_NGINX} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_NGINX}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
+    if [[ ${PKG_VER_php_major} == "7.1" ]];then
+      INSTALL_PKGS_SEGMENT_PHP="php7.1 php7.1-cli php7.1-dev php7.1-fpm php7.1-curl php7.1-gd php7.1-gmp php7.1-intl php7.1-json php7.1-mbstring php7.1-mcrypt php7.1-mysql php7.1-readline php7.1-soap php7.1-sqlite3 php7.1-zip php7.1-opcache php7.1-xml php7.1-raphf php7.1-propro php-xml php-pear phpunit php-http php-apcu php-imagick php-redis php-memcached php-apcu-bc php-memcache php-msgpack php-geoip php-igbinary php-amqp libnghttp2-dev"
+    elif [[ ${PKG_VER_php_major} == "7.2" ]];then
+      INSTALL_PKGS_SEGMENT_PHP="php7.2 php7.2-cli php7.2-dev php7.2-fpm php7.2-curl php7.2-gd php7.2-gmp php7.2-intl php7.2-json php7.2-mbstring php7.2-mysql php7.2-readline php7.2-soap php7.2-sqlite3 php7.2-zip php7.2-opcache php7.2-xml php7.2-raphf php7.2-propro php-xml php-pear phpunit php-http php-apcu php-imagick php-redis php-memcached php-apcu-bc php-memcache php-msgpack php-geoip php-igbinary php-amqp libnghttp2-dev"
+    elif [[ ${PKG_VER_php_major} == "7.3" ]];then
+      INSTALL_PKGS_SEGMENT_PHP="php7.3 php7.3-cli php7.3-dev php7.3-fpm php7.3-curl php7.3-gd php7.3-gmp php7.3-intl php7.3-json php7.3-mbstring php7.3-mysql php7.3-readline php7.3-soap php7.3-sqlite3 php7.3-zip php7.3-opcache php7.3-xml php7.3-raphf php7.3-propro php-xml php-pear phpunit php-http php-apcu php-imagick php-redis php-memcached php-apcu-bc php-memcache php-msgpack php-geoip php-igbinary php-amqp libnghttp2-dev"
+    elif [[ ${PKG_VER_php_major} == "7.4" ]];then
+      INSTALL_PKGS_SEGMENT_PHP="php7.4 php7.4-cli php7.4-dev php7.4-fpm php7.4-curl php7.4-gd php7.4-gmp php7.4-intl php7.4-json php7.4-mbstring php7.4-mysql php7.4-readline php7.4-soap php7.4-sqlite3 php7.4-zip php7.4-opcache php7.4-xml php7.4-raphf php7.4-propro php-xml php-pear phpunit php-http php-apcu php-imagick php-redis php-memcached php-apcu-bc php-memcache php-msgpack php-geoip php-igbinary php-amqp libnghttp2-dev"
+    else
+      INSTALL_PKGS_SEGMENT_PHP="php${PKG_VER_php_major} php${PKG_VER_php_major}-cli php${PKG_VER_php_major}-dev php${PKG_VER_php_major}-fpm php${PKG_VER_php_major}-curl php${PKG_VER_php_major}-gd php${PKG_VER_php_major}-gmp php${PKG_VER_php_major}-intl php${PKG_VER_php_major}-json php${PKG_VER_php_major}-mbstring php${PKG_VER_php_major}-mysql php${PKG_VER_php_major}-readline php${PKG_VER_php_major}-soap php${PKG_VER_php_major}-sqlite3 php${PKG_VER_php_major}-zip php${PKG_VER_php_major}-opcache php${PKG_VER_php_major}-xml php${PKG_VER_php_major}-raphf php${PKG_VER_php_major}-propro php-xml php-pear phpunit php-http php-apcu php-imagick php-redis php-memcached php-apcu-bc php-memcache php-msgpack php-geoip php-igbinary php-amqp libnghttp2-dev"
+    fi
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKG_ENABLE_PHP}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_LIBS} -eq 1 ]];then
+    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_LIBS}"
+  fi
+  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKGS_SETUP}"
 }
 setup_current_env_files(){
   check_set_setup_user ${1:-${SETUP_USER}}
-  mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,go/{src,bin,pkg},var/{log,tmp,run}} && \
-  mkdir -p ${SETUP_USER_HOME}/{.ssh/{config.d,ctrl.d},.local/bin,.config,.cache,.m2,.yarn,.npm,.node-gyp,.composer,.aria2} && \
+  mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,var/{log,tmp,run}} && \
+  mkdir -p ${SETUP_USER_HOME}/{.ssh/{config.d,ctrl.d},.local/bin,.config,.cache,.aria2} && \
   mkdir -p ${SETUP_USER_HOME}/Downloads/temp && \
   ln -nfs /data/app ${SETUP_USER_HOME}/Code
+  if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
+    mkdir -p ${SETUP_USER_HOME}/go/{src,bin,pkg}
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_NODEJS} -eq 1 ]];then
+    mkdir -p ${SETUP_USER_HOME}/{.yarn,.npm,.node-gyp}
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
+    mkdir -p ${SETUP_USER_HOME}/.m2
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
+    mkdir -p ${SETUP_USER_HOME}/.composer
+  fi
 }
 setup_package_addons(){
   check_set_setup_user ${1:-${SETUP_USER}}
-  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup
+  mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
   exec_cmd "wget https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
-  exec_cmd "wget https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
-  dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
-  exec_cmd "wget https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
-  dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
-  exec_cmd "wget https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
-  dpkg -i bat_${PKG_VER_bat}_amd64.deb
-}
-setup_lang_go(){
+  if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
+    exec_cmd "wget https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
+    dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
+    exec_cmd "wget https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
+    dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
+    exec_cmd "wget https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
+    dpkg -i bat_${PKG_VER_bat}_amd64.deb
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
+    exec_cmd "curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash"
+    exec_cmd "-O ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.10-beta.1/dry-linux-amd64"
+    mv ${SETUP_USER_HOME}/setup/dry-linux-amd64 /usr/local/bin/dry
+    chmod +x /usr/local/bin/dry
+    exec_cmd "-O ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
+    mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
+    chmod +x /usr/local/bin/ctop
+    exec_cmd "-O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)"
+    mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+    my_host_ip="$(get_my_ip)"
+    sed -i -E "/host.docker.internal/d" /etc/hosts && \
+    echo "${my_host_ip} host.docker.internal" >> /etc/hosts
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
     if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
         GOLANG_DL_URL="https://golang.google.cn/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
@@ -483,52 +619,133 @@ echo $' \n\
 export GOROOT="/usr/local/go" \n\
 export PATH="$PATH:/usr/local/go/bin" \n\
 ' > /etc/profile.d/go
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
+    mkdir -p /var/lib/php/fpmsessions
+    chown -R ${USER_NAME}:${USER_NAME} /var/lib/php/fpmsessions
+    pecl channel-update pecl.php.net
+    cat >/etc/php/${PKG_VER_php_major}/mods-available/zzz_custom.ini <<EOL
+; priority=99
+
+expose_php = Off
+date.timezone=Etc/UTC
+;date.timezone=Asia/Shanghai
+max_execution_time = 600
+default_socket_timeout = 600
+memory_limit = 512M
+post_max_size = 512M
+upload_max_filesize = 512M
+
+phar.readonly=off
+
+;cgi.fix_pathinfo=0
+cgi.fix_pathinfo=0
+session.save_path = "/var/lib/php/fpmsessions"
+session.gc_probability = 1
+EOL
+    phpenmod -v ${PKG_VER_php_major} zzz_custom
+    if [[ ${PKG_VER_php_major} == "7.1" ]];then
+      pecl install https://pecl.php.net/get/zookeeper-0.6.4.tgz
+    else
+      pecl install https://pecl.php.net/get/zookeeper-0.7.2.tgz
+    fi
+    cat >/etc/php/${PKG_VER_php_major}/mods-available/zookeeper.ini <<EOL
+; priority=25
+extension=zookeeper.so
+EOL
+    phpenmod -v ${PKG_VER_php_major} zookeeper
+    curl -sS https://getcomposer.org/installer -o composer-setup.php
+    php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+    if [[ ${SERVER_REGION_CN} == "y" ]];then
+        sudo -H -u ${USER_NAME} bash -c "composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/ && composer config -g process-timeout 2000"
+    else
+      sudo -H -u ${USER_NAME} bash -c "composer config -g process-timeout 2000"
+    fi
+    wget https://psysh.org/psysh
+    mv psysh /usr/local/bin/
+    chmod +x /usr/local/bin/psysh
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_NGINX} -eq 1 ]];then
+      git clone https://github.com/perusio/nginx_ensite.git ${SETUP_USER_HOME}/setup/nginx_ensite
+      cd ${SETUP_USER_HOME}/setup/nginx_ensite && sudo make install
+      mkdir -p /usr/local/tengine
+      ln -s /etc/nginx /usr/local/tengine/conf
+      ln -s /etc/nginx/sites-enabled /etc/nginx/vhost
+      mv /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/0-default
+  fi
 }
 
 setup_env_zsh(){
   check_set_setup_user ${1:-${SETUP_USER}}
   exec_cmd "wget -O ${SETUP_USER_HOME}/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/master/config/p10k-lean.zsh"
   chown ${SETUP_USER}:${SETUP_USER} ${SETUP_ACT_HOME}/.p10k.zsh;
-  sudo -H -u ${SETUP_USER} bash -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${PKG_VER_zsh_in_docker}/zsh-in-docker.sh)" -- \
-    -t powerlevel10k/powerlevel10k \
-    -p git \
-    -p ssh-agent \
-    -p z \
-    -p autojump \
-    -p history \
-    -p last-working-dir \
-    -p docker \
-    -p github \
-    -p jsontools \
-    -p node \
-    -p npm \
-    -p golang \
-    -p tmux \
-    -p tmuxinator \
-    -p catimg \
-    -p https://github.com/zsh-users/zsh-autosuggestions \
-    -p https://github.com/zsh-users/zsh-completions \
-    -p https://github.com/zsh-users/zsh-syntax-highlighting \
-    -p https://github.com/zsh-users/zsh-history-substring-search \
-    -a 'export ZSH_DISABLE_COMPFIX=true' \
-    -a 'HIST_STAMPS="yyyy-mm-dd"' \
-    -a '[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh' \
-    -a 'export ZSH_TMUX_AUTOSTART=false' \
-    -a 'export ZSH_TMUX_AUTOCONNECT=false' \
-    -a 'zstyle :omz:plugins:ssh-agent agent-forwarding on' \
-    -a 'if [ -f $HOME/.myenvset ]; then source $HOME/.myenvset;fi' \
-    -a 'export PATH=$HOME/.local/bin:$HOME/bin:$PATH:/usr/local/go/bin' \
-    -a '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' \
-    -a 'if [ "$TERM" = "xterm-256color" ] && [ -z "$INSIDE_EMACS" ]; then test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh";fi'
-    sed -i -E "/POWERLEVEL9K_/d" ${SETUP_USER_HOME}/.zshrc && \
-    if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-      cp -af ${SETUP_USER_HOME}/.oh-my-zsh /home/${USER_NAME}/ && \
-      cp -af ${SETUP_USER_HOME}/.zshrc /home/${USER_NAME}/ && sed -i 's/root/home\/${USER_NAME}/g' /home/${USER_NAME}/.zshrc && \
-      cp -af ${SETUP_USER_HOME}/.p10k.zsh /home/${USER_NAME}/
+  sudo -H -u ${SETUP_USER} bash -c "$(curl https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" --unattended
+  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/romkatv/powerlevel10k ${SETUP_ACT_HOME}/.oh-my-zsh/custom/themes/powerlevel10k && \
+  git clone https://github.com/zsh-users/zsh-autosuggestions ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
+  git clone https://github.com/zsh-users/zsh-completions ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-completions && \
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
+  git clone https://github.com/zsh-users/zsh-history-substring-search ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-history-substring-search
+"
+
+cat >${SETUP_USER_HOME}/.zshrc <<EOL
+export ZSH_DISABLE_COMPFIX=true
+export ZSH="${SETUP_USER_HOME}/.oh-my-zsh"
+ZSH_THEME="powerlevel10k/powerlevel10k"
+HIST_STAMPS="yyyy-mm-dd"
+plugins=(
+tmux tmuxinator
+ssh-agent z autojump history last-working-dir zsh-completions zsh-autosuggestions zsh-syntax-highlighting
+catimg git golang npm node docker github httpie jsontools
+composer laravel5
+)
+#autoload -U compinit && compinit
+export ZSH_TMUX_AUTOSTART=false
+export ZSH_TMUX_AUTOCONNECT=false
+zstyle :omz:plugins:ssh-agent agent-forwarding on
+source \$ZSH/oh-my-zsh.sh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi
+export iterm2_hostname="$(hostname -f):22"
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+if [ "\$TERM" = "xterm-256color" ] && [ -z "\$INSIDE_EMACS" ]; then
+  test -e "\${HOME}/.iterm2_shell_integration.zsh" && source "\${HOME}/.iterm2_shell_integration.zsh"
+fi
+[ -f ~/.acme.sh/acme.sh.env ] && source ~/.acme.sh/acme.sh.env
+
+if [ -f ${SETUP_USER_HOME}/miniconda3/bin/conda ];then
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="\$('${SETUP_USER_HOME}/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "\$__conda_setup"
+else
+    if [ -f "${SETUP_USER_HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "${SETUP_USER_HOME}/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="${SETUP_USER_HOME}/miniconda3/bin:$PATH"
     fi
-    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.oh-my-zsh && \
-    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.zshrc && \
-    chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.p10k.zsh
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+if [ -d ${SETUP_USER_HOME}/miniconda3/envs/${CONDA_ENV_NAME} ];then
+  source ${SETUP_USER_HOME}/miniconda3/bin/activate ${CONDA_ENV_NAME}
+fi
+
+fi
+
+EOL
+
+    if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+      cp -af ${SETUP_USER_HOME}/.oh-my-zsh ${USER_HOME}/ && \
+      cp -af ${SETUP_USER_HOME}/.zshrc ${USER_HOME}/ && sed -i "s/${SETUP_USER_HOME}/${USER_HOME}/g" ${USER_HOME}/.zshrc && \
+      cp -af ${SETUP_USER_HOME}/.p10k.zsh ${USER_HOME}/
+    fi
+    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.oh-my-zsh && \
+    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.zshrc && \
+    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.p10k.zsh
 }
 setup_env_tmux(){
   check_set_setup_user ${1:-${SETUP_USER}}
@@ -550,11 +767,11 @@ set -g prefix C-g \n\
 bind C-g send-prefix \n\
 ' >> ${SETUP_USER_HOME}/.tmux.conf.local
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-      cp -af ${SETUP_USER_HOME}/.tmux /home/${USER_NAME}/ && \
-      cp -af ${SETUP_USER_HOME}/.tmux.conf.local /home/${USER_NAME}/
+      cp -af ${SETUP_USER_HOME}/.tmux ${USER_HOME}/ && \
+      cp -af ${SETUP_USER_HOME}/.tmux.conf.local ${USER_HOME}/
   fi
-  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux && \
-  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.tmux.conf.local
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.tmux && \
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.tmux.conf.local
 }
 setup_env_fzf(){
   check_set_setup_user ${1:-${SETUP_USER}}
@@ -571,13 +788,59 @@ setup_env_fonts(){
   cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip Meslo.zip && \
   fc-cache -vf"
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-      mkdir -p /home/${USER_NAME}/setup && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/setup/
-      mkdir -p /home/${USER_NAME}/.local/share/fonts
-      cp -af ${SETUP_USER_HOME}/setup/font_powerline /home/${USER_NAME}/setup/ && \
-      cp -af ${SETUP_USER_HOME}/.local/share/fonts /home/${USER_NAME}/.local/share/
+      mkdir -p ${USER_HOME}/setup && chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/setup/
+      mkdir -p ${USER_HOME}/.local/share/fonts
+      cp -af ${SETUP_USER_HOME}/setup/font_powerline ${USER_HOME}/setup/ && \
+      cp -af ${SETUP_USER_HOME}/.local/share/fonts ${USER_HOME}/.local/share/
   fi
-  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/setup/font_powerline && \
-  chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.local
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/setup/font_powerline && \
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local
+}
+setup_env_conda(){
+  check_set_setup_user ${1:-${SETUP_USER}}
+  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
+
+if [[ ${SERVER_REGION_CN} == "y" ]];then
+  cat >${SETUP_USER_HOME}/.condarc <<EOL
+show_channel_urls: true
+auto_activate_base: true
+report_errors: false
+channel_alias: https://mirrors.tuna.tsinghua.edu.cn/anaconda
+channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/win-64/
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+  - defaults
+  - conda-forge
+default_channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/pro
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+custom_channels:
+  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+EOL
+
+else
+  cat >${SETUP_USER_HOME}/.condarc <<EOL
+show_channel_urls: true
+auto_activate_base: true
+report_errors: false
+channels:
+  - defaults
+  - conda-forge
+EOL
+
+fi
+
 }
 setup() {
 check_installed
@@ -603,7 +866,7 @@ setup_env_tmux ${SETUP_ROOT}
 setup_env_fonts ${SETUP_ROOT}
 setup_env_fzf ${SETUP_ROOT}
 setup_env_fzf ${USER_NAME}
-setup_lang_go
+setup_env_conda ${SETUP_ROOT}
 set_installed
 print_status "Done."
 }
