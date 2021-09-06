@@ -59,7 +59,7 @@ INSTALL_PKG_ENABLE_DOCKER=1
 INSTALL_PKG_ENABLE_NGINX=1
 INSTALL_PKG_ENABLE_LIBS=1
 
-INSTALL_PKGS_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3apt-transport-https ca-certificates lsb-release software-properties-common gnupg-agent gnupg2 pass rng-tools openssh-client ntp ntpdate language-pack-en-base language-pack-zh-hans zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy locales-all"
+INSTALL_PKGS_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 apt-transport-https ca-certificates lsb-release software-properties-common gnupg-agent gnupg2 pass rng-tools openssh-client ntp ntpdate language-pack-en-base language-pack-zh-hans zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy locales-all"
 INSTALL_PKGS_SYSTEM="build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc tig jq"
 
 INSTALL_PKGS_SEGMENT_OPS="vim-nox neovim python-neovim python3-neovim xxd wamerican lnav htop iftop iotop nethogs dstat multitail ncdu ranger silversearcher-ag asciinema"
