@@ -259,7 +259,16 @@ EOL
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.setpx.sh;
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.nopx.sh;
   if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
-    source ${SETUP_ACT_HOME}/.setpx.sh;
+    if [ -f "${SETUP_ACT_HOME}/.setpx.sh" ];then
+      source ${SETUP_ACT_HOME}/.setpx.sh;
+      echo "now active proxy settings";
+      echo "https_proxy: ${https_proxy}";
+      echo "http_proxy: ${http_proxy}";
+      echo "all_proxy: ${all_proxy}";
+      echo "no_proxy: ${no_proxy}";
+    else
+      echo "proxy settings file not found";
+    fi
   fi
 }
 print_status() {
@@ -297,6 +306,27 @@ exec_cmd_nobail() {
 exec_cmd() {
     exec_cmd_nobail "$1" || bail
 }
+check_url_is_ok(){
+  status_code=$(curl --connect-timeout ${2:-7} --max-time ${3:-7} -s -o /dev/null -w "%{http_code}" ${1})
+  if [ "${status_code}" = "000" ]; then
+    # 1 = false
+    return 1
+  else
+    # 0 = true
+    return 0
+  fi
+}
+check_proxy_is_ok(){
+  status_code=$(curl --connect-timeout ${3:-7} --max-time ${4:-7} -x ${1:-${PROXY_URI}} -s -o /dev/null -w "%{http_code}" ${2:-${CHECK_PROXY_URL}})
+  if [ "${status_code}" = "000" ]; then
+    # 1 = false
+    return 1
+  else
+    # 0 = true
+    return 0
+  fi
+}
+
 check_set_setup_user(){
   SETUP_USER=${1:-${USER_NAME}}
   if [[ "${SETUP_USER}" == "root" ]];then
@@ -322,26 +352,7 @@ check_root(){
     exit 1;
   fi
 }
-check_url_is_ok(){
-  status_code=$(curl --connect-timeout ${2:-15} --max-time ${3:-20} -s -o /dev/null -w "%{http_code}" ${1})
-  if [ "${status_code}" = "000" ]; then
-    # 1 = false
-    return 1
-  else
-    # 0 = true
-    return 0
-  fi
-}
-check_proxy_is_ok(){
-  status_code=$(curl --connect-timeout ${3:-15} --max-time ${4:-20} -x ${1:-${PROXY_URI}} -s -o /dev/null -w "%{http_code}" ${2:-${CHECK_PROXY_URL}})
-  if [ "${status_code}" = "000" ]; then
-    # 1 = false
-    return 1
-  else
-    # 0 = true
-    return 0
-  fi
-}
+
 base_env_check_setup(){
 
 if $(uname -m | grep -Eq ^armv6); then
