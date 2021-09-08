@@ -823,7 +823,7 @@ EOL
 
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
     cp -af ${SETUP_USER_HOME}/.oh-my-zsh ${USER_HOME}/ && \
-    cp -af ${SETUP_USER_HOME}/.zshrc ${USER_HOME}/ && sed -i -E "s|${SETUP_USER_HOME}|${USER_HOME}|g" ${USER_HOME}/.zshrc && \
+    cp -af ${SETUP_USER_HOME}/.zshrc ${USER_HOME}/ && sed -i "s|${SETUP_USER_HOME}|${USER_HOME}|g" ${USER_HOME}/.zshrc && \
     cp -af ${SETUP_USER_HOME}/.p10k.zsh ${USER_HOME}/
   fi
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.oh-my-zsh && \
