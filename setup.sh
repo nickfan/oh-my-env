@@ -823,7 +823,7 @@ EOL
 
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
     cp -af ${SETUP_USER_HOME}/.oh-my-zsh ${USER_HOME}/ && \
-    cp -af ${SETUP_USER_HOME}/.zshrc ${USER_HOME}/ && sed -i "s/${SETUP_USER_HOME}/${USER_HOME}/g" ${USER_HOME}/.zshrc && \
+    cp -af ${SETUP_USER_HOME}/.zshrc ${USER_HOME}/ && sed -i -E "s|${SETUP_USER_HOME}|${USER_HOME}|g" ${USER_HOME}/.zshrc && \
     cp -af ${SETUP_USER_HOME}/.p10k.zsh ${USER_HOME}/
   fi
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.oh-my-zsh && \
@@ -875,12 +875,12 @@ setup_env_fonts(){
   if ! check_skip_step "setup_env_fonts" ${SETUP_USER};then return 0;fi
 
   if [ -d ${SETUP_USER_HOME}/.local/share/fonts ];then return 0;fi
-  mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/setup/font_powerline && \
-  mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/setup/font_powerline && bash ${SETUP_USER_HOME}/setup/font_powerline/install.sh && \
-  cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip Hack.zip && \
-  cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip Meslo.zip && \
-  fc-cache -vf"
+  mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/.local/share/fonts
+  wget -O ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip
+  wget -O ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip
+  git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/.local/share/fonts/font_powerline
+  chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share/fonts;
+  sudo -H -u ${SETUP_USER} bash -c "cd ${SETUP_USER_HOME}/.local/share/fonts/font_powerline && bash ${SETUP_USER_HOME}/.local/share/fonts/font_powerline/install.sh && cd ${SETUP_USER_HOME}/.local/share/fonts && fc-cache -vf"
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
       mkdir -p ${USER_HOME}/setup && chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/setup/
       mkdir -p ${USER_HOME}/.local/share/fonts
@@ -897,9 +897,9 @@ setup_env_conda(){
 
   if [ -d ${SETUP_USER_HOME}/miniconda3 ];then return 0;fi
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-  bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
-
+  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ${SETUP_USER_HOME}/miniconda.sh && \
+  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/miniconda.sh
+  sudo -H -u ${SETUP_USER} bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
   if [[ ${SERVER_REGION_CN} == "y" ]];then
     cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
@@ -937,6 +937,7 @@ channels:
   - conda-forge
 EOL
   fi
+  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.condarc
   set_resume_step "setup_env_conda" ${SETUP_USER}
 }
 setup() {
@@ -959,7 +960,6 @@ setup_env_fonts ${SETUP_ROOT}
 setup_env_fzf ${SETUP_ROOT}
 setup_env_fzf ${USER_NAME}
 setup_env_conda ${SETUP_ROOT}
-setup_env_conda ${USER_NAME}
 done_resume_setp
 set_installed
 print_status "Done."
