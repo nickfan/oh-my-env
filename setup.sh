@@ -59,6 +59,22 @@ INSTALL_PKG_ENABLE_DOCKER=1
 INSTALL_PKG_ENABLE_NGINX=1
 INSTALL_PKG_ENABLE_LIBS=1
 
+SKIP_check_installed=0
+SKIP_set_installed=0
+SKIP_base_env_check_setup=0
+SKIP_set_user_shell=0
+SKIP_setup_dist_user_group=0
+SKIP_setup_system_env_files=0
+SKIP_update_package_source=0
+SKIP_install_package_system=0
+SKIP_setup_current_env_files=0
+SKIP_setup_package_addons=0
+SKIP_setup_env_zsh=0
+SKIP_setup_env_tmux=0
+SKIP_setup_env_fzf=0
+SKIP_setup_env_fonts=0
+SKIP_setup_env_conda=0
+
 INSTALL_PKGS_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 apt-transport-https ca-certificates lsb-release software-properties-common gnupg-agent gnupg2 pass rng-tools openssh-client ntp ntpdate language-pack-en-base language-pack-zh-hans zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy locales-all"
 INSTALL_PKGS_SYSTEM="build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc tig jq"
 
@@ -382,12 +398,15 @@ check_set_setup_user(){
 #  return ${SETUP_USER}
 }
 check_installed(){
+  if [[ ${SKIP_check_installed} -eq 1 ]];then echo "[SKIP] check_installed";return 0;fi
+  echo "STEP check_installed"
   if [ -f "${SETUP_ACT_HOME}/.ome.installed" ];then
     print_bold "Already installed now exit."
     exit 1;
   fi
 }
 set_installed(){
+  if [[ ${SKIP_set_installed} -eq 1 ]];then echo "[SKIP] check_installed";return 0;fi
   echo "`date -u +'%Y-%m-%d %H:%M:%S %Z'`" > "${HOME}/.ome.installed";
 }
 
@@ -399,53 +418,36 @@ check_root(){
 }
 
 base_env_check_setup(){
+  if [[ ${SKIP_base_env_check_setup} -eq 1 ]];then echo "[SKIP] base_env_check_setup";return 0;fi
+  echo "STEP base_env_check_setup"
 
-if $(uname -m | grep -Eq ^armv6); then
-    print_status "You appear to be running on ARMv6 hardware. Unfortunately this is not currently supported by the EnvSetup Linux distributions."
-    exit 1
-fi
+  if $(uname -m | grep -Eq ^armv6); then
+      print_status "You appear to be running on ARMv6 hardware. Unfortunately this is not currently supported by the EnvSetup Linux distributions."
+      exit 1
+  fi
 
-PRE_INSTALL_PKGS=""
-
-# Check that HTTPS transport is available to APT
-# (Check snaked from: https://get.docker.io/ubuntu/)
-
-if [ ! -e /usr/lib/apt/methods/https ]; then
-    PRE_INSTALL_PKGS="${PRE_INSTALL_PKGS} apt-transport-https"
-fi
-
-if [ ! -x /usr/bin/lsb_release ]; then
-    PRE_INSTALL_PKGS="${PRE_INSTALL_PKGS} lsb-release"
-fi
-
-if [ ! -x /usr/bin/curl ] && [ ! -x /usr/bin/wget ]; then
-    PRE_INSTALL_PKGS="${PRE_INSTALL_PKGS} curl"
-fi
-
-# Used by apt-key to add new keys
-
-if [ ! -x /usr/bin/gpg ]; then
-    PRE_INSTALL_PKGS="${PRE_INSTALL_PKGS} gnupg"
-fi
-
-# Populating Cache
-print_status "Populating apt-get cache..."
-exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
-exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKGS_BASE}"
-IS_PRERELEASE=$(lsb_release -d | grep 'Ubuntu .*development' >& /dev/null; echo $?)
-if [[ $IS_PRERELEASE -eq 0 ]]; then
-    print_status "Your distribution, identified as \"$(lsb_release -d -s)\", is a pre-release version of Ubuntu. EnvSetup does not maintain official support for Ubuntu versions until they are formally released."
-    exit 1
-fi
+  # Populating Cache
+  print_status "Populating apt-get cache..."
+  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
+  exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKGS_BASE}"
+  IS_PRERELEASE=$(lsb_release -d | grep 'Ubuntu .*development' >& /dev/null; echo $?)
+  if [[ $IS_PRERELEASE -eq 0 ]]; then
+      print_status "Your distribution, identified as \"$(lsb_release -d -s)\", is a pre-release version of Ubuntu. EnvSetup does not maintain official support for Ubuntu versions until they are formally released."
+      exit 1
+  fi
 
 }
 
 set_user_shell(){
+  if [[ ${SKIP_set_user_shell} -eq 1 ]];then echo "[SKIP] set_user_shell";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
+  echo "STEP set_user_shell : ${SETUP_USER}"
   chsh -s /bin/zsh ${SETUP_USER}
 }
 
 setup_dist_user_group(){
+  if [[ ${SKIP_setup_dist_user_group} -eq 1 ]];then echo "[SKIP] setup_dist_user_group";return 0;fi
+  echo "STEP setup_dist_user_group"
   getent group ${USER_NAME} || groupadd ${USER_NAME}
   if id "${USER_NAME}" &>/dev/null; then
       echo 'user already exists'
@@ -455,7 +457,8 @@ setup_dist_user_group(){
   fi
 }
 setup_system_env_files(){
-  echo "setup_system_env_files : ${USER_NAME}"
+  if [[ ${SKIP_setup_system_env_files} -eq 1 ]];then echo "[SKIP] setup_system_env_files";return 0;fi
+  echo "STEP setup_system_env_files"
   ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
   if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
     sed -i -E "/JAVA_HOME=/d" /etc/environment && \
@@ -478,16 +481,9 @@ setup_system_env_files(){
       ln -nfs ${USER_HOME} /home/user
     fi
 }
-setup_user_root_profile(){
-    ADDON_PATH_SEG=""
-    if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
-      ADDON_PATH_SEG="${ADDON_PATH_SEG}:${SETUP_PKG_SEGMENT_GOLANG_PATH}"
-    fi
-    sed -i -E "/\.myenvset/d" ${SETUP_ROOT_HOME}/.profile && \
-    echo "export PATH=\$HOME/.local/bin:\$HOME/bin:\$PATH${ADDON_PATH_SEG}" >> ${SETUP_ROOT_HOME}/.profile && \
-    echo "if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi" >> ${SETUP_ROOT_HOME}/.profile
-}
 update_package_source(){
+  if [[ ${SKIP_update_package_source} -eq 1 ]];then echo "[SKIP] update_package_source";return 0;fi
+  echo "STEP update_package_source"
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
     add-apt-repository -y -n ppa:neovim-ppa/stable
   fi
@@ -514,6 +510,8 @@ update_package_source(){
   fi
 }
 install_package_system(){
+  if [[ ${SKIP_install_package_system} -eq 1 ]];then echo "[SKIP] install_package_system";return 0;fi
+  echo "STEP install_package_system"
   INSTALL_PKGS_SETUP=${INSTALL_PKGS_SYSTEM}
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
     INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_OPS}"
@@ -562,11 +560,23 @@ install_package_system(){
   exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKGS_SETUP}"
 }
 setup_current_env_files(){
+  if [[ ${SKIP_setup_current_env_files} -eq 1 ]];then echo "[SKIP] setup_current_env_files";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
+  echo "STEP setup_current_env_files : ${SETUP_USER}"
+  ADDON_PATH_SEG=""
+  if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
+    ADDON_PATH_SEG="${ADDON_PATH_SEG}:${SETUP_PKG_SEGMENT_GOLANG_PATH}"
+  fi
+  sed -i -E "/\.myenvset/d" ${SETUP_USER_HOME}/.profile && \
+  echo "export PATH=\$HOME/.local/bin:\$HOME/bin:\$PATH${ADDON_PATH_SEG}" >> ${SETUP_USER_HOME}/.profile && \
+  echo "if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi" >> ${SETUP_USER_HOME}/.profile
+
   mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,var/{log,tmp,run}} && \
   mkdir -p ${SETUP_USER_HOME}/{.ssh/{config.d,ctrl.d},.local/bin,.config,.cache,.aria2} && \
-  mkdir -p ${SETUP_USER_HOME}/Downloads/temp && \
-  ln -nfs /data/app ${SETUP_USER_HOME}/Code
+  mkdir -p ${SETUP_USER_HOME}/Downloads/temp
+  if [[ ! -d ${SETUP_USER_HOME}/Code ]];then
+      ln -nfs /data/app ${SETUP_USER_HOME}/Code
+  fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     mkdir -p ${SETUP_USER_HOME}/go/{src,bin,pkg}
   fi
@@ -581,7 +591,9 @@ setup_current_env_files(){
   fi
 }
 setup_package_addons(){
+  if [[ ${SKIP_setup_package_addons} -eq 1 ]];then echo "[SKIP] setup_package_addons";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
+  echo "STEP setup_package_addons : ${SETUP_USER}"
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
   exec_cmd "wget https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
@@ -595,13 +607,13 @@ setup_package_addons(){
   fi
   if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
     exec_cmd "curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash"
-    exec_cmd "-O ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.10-beta.1/dry-linux-amd64"
+    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.10-beta.1/dry-linux-amd64"
     mv ${SETUP_USER_HOME}/setup/dry-linux-amd64 /usr/local/bin/dry
     chmod +x /usr/local/bin/dry
-    exec_cmd "-O ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
+    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
     mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
     chmod +x /usr/local/bin/ctop
-    exec_cmd "-O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)"
+    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)"
     mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     my_host_ip="$(get_my_ip)"
@@ -676,15 +688,18 @@ EOL
 }
 
 setup_env_zsh(){
+  if [[ ${SKIP_setup_env_zsh} -eq 1 ]];then echo "[SKIP] setup_env_zsh";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
+  echo "STEP setup_env_zsh : ${SETUP_USER}"
+  if [[ -d ${SETUP_USER_HOME}/.oh-my-zsh && -f ${SETUP_USER_HOME}/.p10k.zsh ]];then return 0;fi
   exec_cmd "wget -O ${SETUP_USER_HOME}/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/master/config/p10k-lean.zsh"
-  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_ACT_HOME}/.p10k.zsh;
+  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.p10k.zsh;
   sudo -H -u ${SETUP_USER} bash -c "$(curl https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" --unattended
-  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/romkatv/powerlevel10k ${SETUP_ACT_HOME}/.oh-my-zsh/custom/themes/powerlevel10k && \
-  git clone https://github.com/zsh-users/zsh-autosuggestions ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
-  git clone https://github.com/zsh-users/zsh-completions ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-completions && \
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
-  git clone https://github.com/zsh-users/zsh-history-substring-search ${SETUP_ACT_HOME}/.oh-my-zsh/custom/plugins/zsh-history-substring-search
+  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/romkatv/powerlevel10k ${SETUP_USER_HOME}/.oh-my-zsh/custom/themes/powerlevel10k && \
+  git clone https://github.com/zsh-users/zsh-autosuggestions ${SETUP_USER_HOME}/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
+  git clone https://github.com/zsh-users/zsh-completions ${SETUP_USER_HOME}/.oh-my-zsh/custom/plugins/zsh-completions && \
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting ${SETUP_USER_HOME}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
+  git clone https://github.com/zsh-users/zsh-history-substring-search ${SETUP_USER_HOME}/.oh-my-zsh/custom/plugins/zsh-history-substring-search
 "
 
 cat >${SETUP_USER_HOME}/.zshrc <<EOL
@@ -748,7 +763,10 @@ EOL
     chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.p10k.zsh
 }
 setup_env_tmux(){
+  if [[ ${SKIP_setup_env_tmux} -eq 1 ]];then echo "[SKIP] setup_env_tmux";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
+  echo "STEP setup_env_tmux : ${SETUP_USER}"
+  if [ -d ${SETUP_USER_HOME}/.tmux ];then return 0;fi
   sudo -H -u ${SETUP_USER} bash -c "cd ${SETUP_USER_HOME} && git clone https://github.com/gpakosz/.tmux.git ${SETUP_USER_HOME}/.tmux && \
     ln -nfs -f ${SETUP_USER_HOME}/.tmux/.tmux.conf ${SETUP_USER_HOME}/.tmux.conf && \
     cp ${SETUP_USER_HOME}/.tmux/.tmux.conf.local ${SETUP_USER_HOME}/"
@@ -774,14 +792,18 @@ bind C-g send-prefix \n\
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.tmux.conf.local
 }
 setup_env_fzf(){
+  if [[ ${SKIP_setup_env_fzf} -eq 1 ]];then echo "[SKIP] setup_env_fzf";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  if [ ! -d ${SETUP_USER_HOME}/.fzf ];then
-    sudo -H -u ${SETUP_USER} bash -c "git clone --depth 1 https://github.com/junegunn/fzf.git ${SETUP_USER_HOME}/.fzf && ${SETUP_USER_HOME}/.fzf/install"
-  fi
+  echo "STEP setup_env_fzf : ${SETUP_USER}"
+  if [ -d ${SETUP_USER_HOME}/.fzf ];then return 0;fi
+  sudo -H -u ${SETUP_USER} bash -c "git clone --depth 1 https://github.com/junegunn/fzf.git ${SETUP_USER_HOME}/.fzf && ${SETUP_USER_HOME}/.fzf/install"
 }
 setup_env_fonts(){
+  if [[ ${SKIP_setup_env_fonts} -eq 1 ]];then echo "[SKIP] setup_env_fonts";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup
+  echo "STEP setup_env_fonts : ${SETUP_USER}"
+  if [ -d ${SETUP_USER_HOME}/.local/share/fonts ];then return 0;fi
+  mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
   sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/setup/font_powerline && \
   mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/setup/font_powerline && bash ${SETUP_USER_HOME}/setup/font_powerline/install.sh && \
   cd ${SETUP_USER_HOME}/.local/share/fonts && wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip Hack.zip && \
@@ -797,13 +819,16 @@ setup_env_fonts(){
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local
 }
 setup_env_conda(){
+  if [[ ${SKIP_setup_env_conda} -eq 1 ]];then echo "[SKIP] setup_env_conda";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  mkdir -p ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
+  echo "STEP setup_env_conda : ${SETUP_USER}"
+  if [ -d ${SETUP_USER_HOME}/miniconda3 ];then return 0;fi
+  mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
+  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+  bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
 
-if [[ ${SERVER_REGION_CN} == "y" ]];then
-  cat >${SETUP_USER_HOME}/.condarc <<EOL
+  if [[ ${SERVER_REGION_CN} == "y" ]];then
+    cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
 auto_activate_base: true
 report_errors: false
@@ -829,8 +854,8 @@ custom_channels:
   simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
 EOL
 
-else
-  cat >${SETUP_USER_HOME}/.condarc <<EOL
+  else
+    cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
 auto_activate_base: true
 report_errors: false
@@ -838,9 +863,7 @@ channels:
   - defaults
   - conda-forge
 EOL
-
-fi
-
+  fi
 }
 setup() {
 check_installed
@@ -850,23 +873,20 @@ init_env_conf
 base_env_check_setup
 setup_dist_user_group
 setup_system_env_files
-setup_user_root_profile
 update_package_source
 install_package_system
-check_set_setup_user ${SETUP_ROOT}
 set_user_shell ${SETUP_ROOT}
-setup_package_addons ${SETUP_ROOT}
-check_set_setup_user ${USER_NAME}
 set_user_shell ${USER_NAME}
-setup_current_env_files ${USER_NAME}
-check_set_setup_user ${SETUP_ROOT}
+setup_package_addons ${SETUP_ROOT}
 setup_current_env_files ${SETUP_ROOT}
+setup_current_env_files ${USER_NAME}
 setup_env_zsh ${SETUP_ROOT}
 setup_env_tmux ${SETUP_ROOT}
 setup_env_fonts ${SETUP_ROOT}
 setup_env_fzf ${SETUP_ROOT}
 setup_env_fzf ${USER_NAME}
 setup_env_conda ${SETUP_ROOT}
+setup_env_conda ${USER_NAME}
 set_installed
 print_status "Done."
 }
