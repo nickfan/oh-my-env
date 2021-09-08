@@ -45,6 +45,8 @@
 #
 #
 
+# script env startup setup
+
 INSTALL_PKG_ENABLE_ACT_USER=1
 INSTALL_PKG_ENABLE_OPS=1
 INSTALL_PKG_ENABLE_SRV=1
@@ -58,22 +60,22 @@ INSTALL_PKG_ENABLE_GOLANG=1
 INSTALL_PKG_ENABLE_DOCKER=1
 INSTALL_PKG_ENABLE_NGINX=1
 INSTALL_PKG_ENABLE_LIBS=1
-
-SKIP_check_installed=0
-SKIP_set_installed=0
-SKIP_base_env_check_setup=0
-SKIP_set_user_shell=0
-SKIP_setup_dist_user_group=0
-SKIP_setup_system_env_files=0
-SKIP_update_package_source=0
-SKIP_install_package_system=0
-SKIP_setup_current_env_files=0
-SKIP_setup_package_addons=0
-SKIP_setup_env_zsh=0
-SKIP_setup_env_tmux=0
-SKIP_setup_env_fzf=0
-SKIP_setup_env_fonts=0
-SKIP_setup_env_conda=0
+#
+#SKIP_check_installed=0
+#SKIP_set_installed=0
+#SKIP_base_env_check_setup=0
+#SKIP_set_user_shell=0
+#SKIP_setup_dist_user_group=0
+#SKIP_setup_system_env_files=0
+#SKIP_update_package_source=0
+#SKIP_install_package_system=0
+#SKIP_setup_current_env_files=0
+#SKIP_setup_package_addons=0
+#SKIP_setup_env_zsh=0
+#SKIP_setup_env_tmux=0
+#SKIP_setup_env_fzf=0
+#SKIP_setup_env_fonts=0
+#SKIP_setup_env_conda=0
 
 INSTALL_PKGS_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 apt-transport-https ca-certificates lsb-release software-properties-common gnupg-agent gnupg2 pass rng-tools openssh-client ntp ntpdate language-pack-en-base language-pack-zh-hans zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy locales-all"
 INSTALL_PKGS_SYSTEM="build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc tig jq"
@@ -109,6 +111,66 @@ SETUP_ROOT="root"
 SETUP_USER_HOME=${SETUP_ACT_HOME}
 SETUP_USER_HOME_DEFAULT=${SETUP_ACT_HOME}
 
+ACT_USER=${SUDO_USER:-$(whoami)}
+ACT_GROUP=$(id -gn ${ACT_USER})
+SETUP_USER=${ACT_USER}
+
+# script env detect setup
+
+# detect if script run as root
+if [ "$EUID" -ne 0 ]; then
+  echo "please run as root";
+  exit 1;
+fi
+# detect if script run as noninteractive mode.
+if [ -z ${SCRIPT_NONINTERACTIVE} ];then
+  SCRIPT_NONINTERACTIVE=1
+  SCRIPT_INTERACTIVE_CONFIRM="y"
+  if [[ $- == *i* ]];then
+    SCRIPT_NONINTERACTIVE=1
+  else
+    if [ -z "$PS1" ]; then
+      read -e -p "Start Install? [y/n] " -i ${SCRIPT_INTERACTIVE_CONFIRM} SCRIPT_INTERACTIVE_CONFIRM
+      if [[ "${SCRIPT_INTERACTIVE_CONFIRM}" == "y" ]];then
+        SCRIPT_NONINTERACTIVE=0
+      else
+        SCRIPT_NONINTERACTIVE=1
+      fi
+    else
+      SCRIPT_NONINTERACTIVE=1
+    fi
+  fi
+else
+  if [ ${SCRIPT_NONINTERACTIVE} -eq 1 ] ;then
+    SCRIPT_NONINTERACTIVE=1
+    DEBIAN_FRONTEND=noninteractive
+    export DEBIAN_FRONTEND=noninteractive
+  else
+    SCRIPT_NONINTERACTIVE=0
+  fi
+fi
+
+
+if test -t 1; then # if terminal
+    ncolors=$(which tput > /dev/null && tput colors) # supports color
+    if test -n "$ncolors" && test $ncolors -ge 8; then
+        termcols=$(tput cols)
+        bold="$(tput bold)"
+        underline="$(tput smul)"
+        standout="$(tput smso)"
+        normal="$(tput sgr0)"
+        black="$(tput setaf 0)"
+        red="$(tput setaf 1)"
+        green="$(tput setaf 2)"
+        yellow="$(tput setaf 3)"
+        blue="$(tput setaf 4)"
+        magenta="$(tput setaf 5)"
+        cyan="$(tput setaf 6)"
+        white="$(tput setaf 7)"
+    fi
+fi
+
+
 init_env_conf(){
   SERVER_REGION_CN_DEFAULT="auto"
   USE_PROXY_DEFAULT="auto"
@@ -134,6 +196,11 @@ init_env_conf(){
   TZ=${TZ_DEFAULT}
   TERM=${TERM_DEFAULT}
   ZSH_THEME=${ZSH_THEME_DEFAULT}
+
+  if [ ! -d "${SETUP_ACT_HOME}/.ome" ];then
+    mkdir -p "${SETUP_ACT_HOME}/.ome"
+    chown -R ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome
+  fi
 
   if [ -f "${SETUP_ACT_HOME}/.omerc" ];then
     source "${SETUP_ACT_HOME}/.omerc";
@@ -206,6 +273,11 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
       fi
     fi
   fi
+  setup_env_set_proxy
+
+  if [ -f "${SETUP_ACT_HOME}/.ome/.setup.resume.env" ];then
+    source "${SETUP_ACT_HOME}/.ome/.setup.resume.env";
+  fi
 
   echo "======================"
   echo "ACT_USER: [${ACT_USER}]"
@@ -222,58 +294,8 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   echo "TZ: [${TZ}] "
   echo "TERM: [${TERM}] "
   echo "ZSH_THEME: [${ZSH_THEME}] "
-  setup_env_set_proxy
 }
 
-ACT_USER=${SUDO_USER:-$(whoami)}
-ACT_GROUP=$(id -gn ${ACT_USER})
-SETUP_USER=${ACT_USER}
-if [ -z ${SCRIPT_NONINTERACTIVE} ];then
-  SCRIPT_NONINTERACTIVE=1
-  SCRIPT_INTERACTIVE_CONFIRM="y"
-  if [[ $- == *i* ]];then
-    SCRIPT_NONINTERACTIVE=1
-  else
-    if [ -z "$PS1" ]; then
-      read -e -p "Proceed? [y/n] " -i ${SCRIPT_INTERACTIVE_CONFIRM} SCRIPT_INTERACTIVE_CONFIRM
-      if [[ "${SCRIPT_INTERACTIVE_CONFIRM}" == "y" ]];then
-        SCRIPT_NONINTERACTIVE=0
-      else
-        SCRIPT_NONINTERACTIVE=1
-      fi
-    else
-      SCRIPT_NONINTERACTIVE=1
-    fi
-  fi
-else
-  if [ ${SCRIPT_NONINTERACTIVE} -eq 1 ] ;then
-    SCRIPT_NONINTERACTIVE=1
-    DEBIAN_FRONTEND=noninteractive
-    export DEBIAN_FRONTEND=noninteractive
-  else
-    SCRIPT_NONINTERACTIVE=0
-  fi
-fi
-
-
-if test -t 1; then # if terminal
-    ncolors=$(which tput > /dev/null && tput colors) # supports color
-    if test -n "$ncolors" && test $ncolors -ge 8; then
-        termcols=$(tput cols)
-        bold="$(tput bold)"
-        underline="$(tput smul)"
-        standout="$(tput smso)"
-        normal="$(tput sgr0)"
-        black="$(tput setaf 0)"
-        red="$(tput setaf 1)"
-        green="$(tput setaf 2)"
-        yellow="$(tput setaf 3)"
-        blue="$(tput setaf 4)"
-        magenta="$(tput setaf 5)"
-        cyan="$(tput setaf 6)"
-        white="$(tput setaf 7)"
-    fi
-fi
 setup_env_set_proxy(){
   cat >${SETUP_ACT_HOME}/.nopx.sh <<EOL
 #!/usr/bin/env bash
@@ -398,28 +420,71 @@ check_set_setup_user(){
 #  return ${SETUP_USER}
 }
 check_installed(){
-  if [[ ${SKIP_check_installed} -eq 1 ]];then echo "[SKIP] check_installed";return 0;fi
-  echo "STEP check_installed"
-  if [ -f "${SETUP_ACT_HOME}/.ome.installed" ];then
+  if ! check_skip_step "check_installed";then return 0;fi
+  if [ -f "${SETUP_ACT_HOME}/.ome/installed" ];then
     print_bold "Already installed now exit."
     exit 1;
   fi
+  set_resume_step "check_installed"
 }
 set_installed(){
   if [[ ${SKIP_set_installed} -eq 1 ]];then echo "[SKIP] check_installed";return 0;fi
-  echo "`date -u +'%Y-%m-%d %H:%M:%S %Z'`" > "${HOME}/.ome.installed";
+  echo "`date -u +'%Y-%m-%d %H:%M:%S %Z'`" > "${SETUP_ACT_HOME}/.ome/installed";
 }
-
-check_root(){
-  if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root";
-    exit 1;
+check_skip_step(){
+  STEP_LABEL_CURRENT=${1};
+  STEP_USER_CURRENT=${2};
+  if [ -n "${STEP_LABEL_CURRENT}" ];then
+    SKIP_LABEL_VAR_NAME="SKIP_${STEP_LABEL_CURRENT}";
+    if [ -n "${STEP_USER_CURRENT}" ];then
+      SKIP_LABEL_VAR_NAME="${SKIP_LABEL_VAR_NAME}_${STEP_USER_CURRENT}";
+    fi
+#    echo "SKIP_LABEL_VAR_NAME: ${SKIP_LABEL_VAR_NAME}"
+    SKIP_LABEL_VAR_VALUE=${!SKIP_LABEL_VAR_NAME}
+#    echo "SKIP_LABEL_VAR_VALUE: ${SKIP_LABEL_VAR_VALUE}"
+    if [[ ${SKIP_LABEL_VAR_VALUE} -eq 1 ]];then
+      echo "[SKIP] ${STEP_LABEL_CURRENT} ${STEP_USER_CURRENT}";
+      return 1;
+    else
+      echo "[STEP] ${STEP_LABEL_CURRENT} ${STEP_USER_CURRENT}";
+      return 0;
+    fi
+  else
+    return 0;
+  fi
+}
+set_resume_step(){
+  STEP_LABEL_CURRENT=${1};
+  STEP_USER_CURRENT=${2};
+  if [ -n "${STEP_LABEL_CURRENT}" ];then
+    SKIP_LABEL_VAR_NAME="SKIP_${STEP_LABEL_CURRENT}";
+    if [ -n "${STEP_USER_CURRENT}" ];then
+      SKIP_LABEL_VAR_NAME="${SKIP_LABEL_VAR_NAME}_${STEP_USER_CURRENT}";
+    fi
+    if [ ! -d "${SETUP_ACT_HOME}/.ome" ];then
+      mkdir -p "${SETUP_ACT_HOME}/.ome";
+      chown -R ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome;
+    fi
+    if [[ ! -f "${SETUP_ACT_HOME}/.ome/.setup.resume.env" ]];then
+      touch ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
+    fi
+    sed -i -E "/${SKIP_LABEL_VAR_NAME}=/d" ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
+    echo "${SKIP_LABEL_VAR_NAME}=1" >> ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
+    chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
+  fi
+}
+done_resume_setp(){
+  if [ ! -d "${SETUP_ACT_HOME}/.ome" ];then
+    mkdir -p "${SETUP_ACT_HOME}/.ome";
+    chown -R ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome;
+  fi
+  if [[ -f "${SETUP_ACT_HOME}/.ome/.setup.resume.env" ]];then
+    rm -rf "${SETUP_ACT_HOME}/.ome/.setup.resume.env";
   fi
 }
 
 base_env_check_setup(){
-  if [[ ${SKIP_base_env_check_setup} -eq 1 ]];then echo "[SKIP] base_env_check_setup";return 0;fi
-  echo "STEP base_env_check_setup"
+  if ! check_skip_step "base_env_check_setup";then return 0;fi
 
   if $(uname -m | grep -Eq ^armv6); then
       print_status "You appear to be running on ARMv6 hardware. Unfortunately this is not currently supported by the EnvSetup Linux distributions."
@@ -435,19 +500,18 @@ base_env_check_setup(){
       print_status "Your distribution, identified as \"$(lsb_release -d -s)\", is a pre-release version of Ubuntu. EnvSetup does not maintain official support for Ubuntu versions until they are formally released."
       exit 1
   fi
-
+  set_resume_step "base_env_check_setup"
 }
 
 set_user_shell(){
-  if [[ ${SKIP_set_user_shell} -eq 1 ]];then echo "[SKIP] set_user_shell";return 0;fi
-  check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP set_user_shell : ${SETUP_USER}"
+  check_set_setup_user ${1:-${SETUP_USER}};
+  if ! check_skip_step "set_user_shell" ${SETUP_USER};then return 0;fi
   chsh -s /bin/zsh ${SETUP_USER}
+  set_resume_step "set_user_shell" ${SETUP_USER}
 }
 
 setup_dist_user_group(){
-  if [[ ${SKIP_setup_dist_user_group} -eq 1 ]];then echo "[SKIP] setup_dist_user_group";return 0;fi
-  echo "STEP setup_dist_user_group"
+  if ! check_skip_step "setup_dist_user_group";then return 0;fi
   getent group ${USER_NAME} || groupadd ${USER_NAME}
   if id "${USER_NAME}" &>/dev/null; then
       echo 'user already exists'
@@ -455,10 +519,10 @@ setup_dist_user_group(){
     adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home ${USER_HOME} --gecos "User" ${USER_NAME}
     echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME}
   fi
+  set_resume_step "setup_dist_user_group"
 }
 setup_system_env_files(){
-  if [[ ${SKIP_setup_system_env_files} -eq 1 ]];then echo "[SKIP] setup_system_env_files";return 0;fi
-  echo "STEP setup_system_env_files"
+  if ! check_skip_step "setup_system_env_files";then return 0;fi
   ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
   if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
     sed -i -E "/JAVA_HOME=/d" /etc/environment && \
@@ -480,10 +544,11 @@ setup_system_env_files(){
     if [[ "${USER_NAME}" != "user" && "${USER_NAME}" != "root" ]];then
       ln -nfs ${USER_HOME} /home/user
     fi
+    set_resume_step "setup_system_env_files"
 }
 update_package_source(){
-  if [[ ${SKIP_update_package_source} -eq 1 ]];then echo "[SKIP] update_package_source";return 0;fi
-  echo "STEP update_package_source"
+  if ! check_skip_step "update_package_source";then return 0;fi
+
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
     add-apt-repository -y -n ppa:neovim-ppa/stable
   fi
@@ -508,10 +573,10 @@ update_package_source(){
   else
     exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf update"
   fi
+  set_resume_step "update_package_source"
 }
 install_package_system(){
-  if [[ ${SKIP_install_package_system} -eq 1 ]];then echo "[SKIP] install_package_system";return 0;fi
-  echo "STEP install_package_system"
+  if ! check_skip_step "install_package_system";then return 0;fi
   INSTALL_PKGS_SETUP=${INSTALL_PKGS_SYSTEM}
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
     INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_OPS}"
@@ -558,11 +623,12 @@ install_package_system(){
     INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_LIBS}"
   fi
   exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKGS_SETUP}"
+  set_resume_step "install_package_system"
 }
 setup_current_env_files(){
-  if [[ ${SKIP_setup_current_env_files} -eq 1 ]];then echo "[SKIP] setup_current_env_files";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP setup_current_env_files : ${SETUP_USER}"
+  if ! check_skip_step "setup_current_env_files" ${SETUP_USER};then return 0;fi
+
   ADDON_PATH_SEG=""
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     ADDON_PATH_SEG="${ADDON_PATH_SEG}:${SETUP_PKG_SEGMENT_GOLANG_PATH}"
@@ -589,11 +655,12 @@ setup_current_env_files(){
   if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
     mkdir -p ${SETUP_USER_HOME}/.composer
   fi
+  set_resume_step "setup_current_env_files" ${SETUP_USER}
 }
 setup_package_addons(){
-  if [[ ${SKIP_setup_package_addons} -eq 1 ]];then echo "[SKIP] setup_package_addons";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP setup_package_addons : ${SETUP_USER}"
+  if ! check_skip_step "setup_package_addons" ${SETUP_USER};then return 0;fi
+
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
   exec_cmd "wget https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
@@ -685,12 +752,13 @@ EOL
       ln -s /etc/nginx/sites-enabled /etc/nginx/vhost
       mv /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/0-default
   fi
+  set_resume_step "setup_package_addons" ${SETUP_USER}
 }
 
 setup_env_zsh(){
-  if [[ ${SKIP_setup_env_zsh} -eq 1 ]];then echo "[SKIP] setup_env_zsh";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP setup_env_zsh : ${SETUP_USER}"
+  if ! check_skip_step "setup_env_zsh" ${SETUP_USER};then return 0;fi
+
   if [[ -d ${SETUP_USER_HOME}/.oh-my-zsh && -f ${SETUP_USER_HOME}/.p10k.zsh ]];then return 0;fi
   exec_cmd "wget -O ${SETUP_USER_HOME}/.p10k.zsh https://raw.githubusercontent.com/romkatv/powerlevel10k/master/config/p10k-lean.zsh"
   chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.p10k.zsh;
@@ -753,19 +821,21 @@ fi
 
 EOL
 
-    if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-      cp -af ${SETUP_USER_HOME}/.oh-my-zsh ${USER_HOME}/ && \
-      cp -af ${SETUP_USER_HOME}/.zshrc ${USER_HOME}/ && sed -i "s/${SETUP_USER_HOME}/${USER_HOME}/g" ${USER_HOME}/.zshrc && \
-      cp -af ${SETUP_USER_HOME}/.p10k.zsh ${USER_HOME}/
-    fi
-    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.oh-my-zsh && \
-    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.zshrc && \
-    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.p10k.zsh
+  if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+    cp -af ${SETUP_USER_HOME}/.oh-my-zsh ${USER_HOME}/ && \
+    cp -af ${SETUP_USER_HOME}/.zshrc ${USER_HOME}/ && sed -i "s/${SETUP_USER_HOME}/${USER_HOME}/g" ${USER_HOME}/.zshrc && \
+    cp -af ${SETUP_USER_HOME}/.p10k.zsh ${USER_HOME}/
+  fi
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.oh-my-zsh && \
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.zshrc && \
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.p10k.zsh
+
+  set_resume_step "setup_env_zsh" ${SETUP_USER}
 }
 setup_env_tmux(){
-  if [[ ${SKIP_setup_env_tmux} -eq 1 ]];then echo "[SKIP] setup_env_tmux";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP setup_env_tmux : ${SETUP_USER}"
+  if ! check_skip_step "setup_env_tmux" ${SETUP_USER};then return 0;fi
+
   if [ -d ${SETUP_USER_HOME}/.tmux ];then return 0;fi
   sudo -H -u ${SETUP_USER} bash -c "cd ${SETUP_USER_HOME} && git clone https://github.com/gpakosz/.tmux.git ${SETUP_USER_HOME}/.tmux && \
     ln -nfs -f ${SETUP_USER_HOME}/.tmux/.tmux.conf ${SETUP_USER_HOME}/.tmux.conf && \
@@ -790,18 +860,20 @@ bind C-g send-prefix \n\
   fi
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.tmux && \
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.tmux.conf.local
+  set_resume_step "setup_env_tmux" ${SETUP_USER}
 }
 setup_env_fzf(){
-  if [[ ${SKIP_setup_env_fzf} -eq 1 ]];then echo "[SKIP] setup_env_fzf";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP setup_env_fzf : ${SETUP_USER}"
+  if ! check_skip_step "setup_env_fzf" ${SETUP_USER};then return 0;fi
+
   if [ -d ${SETUP_USER_HOME}/.fzf ];then return 0;fi
   sudo -H -u ${SETUP_USER} bash -c "git clone --depth 1 https://github.com/junegunn/fzf.git ${SETUP_USER_HOME}/.fzf && ${SETUP_USER_HOME}/.fzf/install"
+  set_resume_step "setup_env_fzf" ${SETUP_USER}
 }
 setup_env_fonts(){
-  if [[ ${SKIP_setup_env_fonts} -eq 1 ]];then echo "[SKIP] setup_env_fonts";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP setup_env_fonts : ${SETUP_USER}"
+  if ! check_skip_step "setup_env_fonts" ${SETUP_USER};then return 0;fi
+
   if [ -d ${SETUP_USER_HOME}/.local/share/fonts ];then return 0;fi
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
   sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/setup/font_powerline && \
@@ -817,11 +889,12 @@ setup_env_fonts(){
   fi
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/setup/font_powerline && \
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local
+  set_resume_step "setup_env_fonts" ${SETUP_USER}
 }
 setup_env_conda(){
-  if [[ ${SKIP_setup_env_conda} -eq 1 ]];then echo "[SKIP] setup_env_conda";return 0;fi
   check_set_setup_user ${1:-${SETUP_USER}}
-  echo "STEP setup_env_conda : ${SETUP_USER}"
+  if ! check_skip_step "setup_env_conda" ${SETUP_USER};then return 0;fi
+
   if [ -d ${SETUP_USER_HOME}/miniconda3 ];then return 0;fi
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
@@ -864,10 +937,10 @@ channels:
   - conda-forge
 EOL
   fi
+  set_resume_step "setup_env_conda" ${SETUP_USER}
 }
 setup() {
 check_installed
-check_root
 print_status "Installing ..."
 init_env_conf
 base_env_check_setup
@@ -887,6 +960,7 @@ setup_env_fzf ${SETUP_ROOT}
 setup_env_fzf ${USER_NAME}
 setup_env_conda ${SETUP_ROOT}
 setup_env_conda ${USER_NAME}
+done_resume_setp
 set_installed
 print_status "Done."
 }
