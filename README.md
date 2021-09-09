@@ -7,6 +7,20 @@ my env setup script
 * [English](README.md)
 * [简体中文](README.zh_CN.md)
 
+## Quick Start
+
+quick install this via the command-line
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nickfan/oh-my-env/master/setup.sh | sudo -E bash -
+```
+
+For CN region:
+
+```sh
+curl -fsSL https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh | sudo -E bash -
+```
+
 ## Customize
 
 If you want to customize settings before install

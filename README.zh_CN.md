@@ -7,6 +7,20 @@
 * [English](README.md)
 * [简体中文](README.zh_CN.md)
 
+## 快速开始
+
+命令行一键安装
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nickfan/oh-my-env/master/setup.sh | sudo -E bash -
+```
+
+中国国内区域下载加速：
+
+```sh
+curl -fsSL https://gitee.com/nickfan/oh-my-env/raw/master/setup.sh | sudo -E bash -
+```
+
 ## 自定义
 
 如果安装前需要做一些自定义配置则可以下载样例配置并编辑~/.omerc配置文件

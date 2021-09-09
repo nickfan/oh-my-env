@@ -49,7 +49,6 @@
 
 CHECK_NEED_PROXY_URL="https://www.google.com/"
 
-INSTALL_PKG_ENABLE_ACT_USER=0
 INSTALL_PKG_ENABLE_OPS=1
 INSTALL_PKG_ENABLE_SRV=1
 INSTALL_PKG_ENABLE_CLI=1
@@ -57,6 +56,7 @@ INSTALL_PKG_ENABLE_PYTHON=1
 INSTALL_PKG_ENABLE_RUBY=1
 INSTALL_PKG_ENABLE_NODEJS=1
 INSTALL_PKG_ENABLE_JAVA=1
+INSTALL_PKG_ENABLE_RUST=1
 INSTALL_PKG_ENABLE_PHP=1
 INSTALL_PKG_ENABLE_GOLANG=1
 INSTALL_PKG_ENABLE_DOCKER=1
@@ -631,10 +631,19 @@ setup_current_env_files(){
   if ! check_skip_step "setup_current_env_files" ${SETUP_USER};then return 0;fi
   ADDON_PATH_SEG=""
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
-    ADDON_PATH_SEG="${ADDON_PATH_SEG}:${SETUP_PKG_SEGMENT_GOLANG_PATH}"
+    ADDON_PATH_SEG="${ADDON_PATH_SEG}:\$HOME/go/bin:${SETUP_PKG_SEGMENT_GOLANG_PATH}"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_NODEJS} -eq 1 ]];then
+    ADDON_PATH_SEG="${ADDON_PATH_SEG}:\$HOME/.yarn/bin"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_RUST} -eq 1 ]];then
+    ADDON_PATH_SEG="${ADDON_PATH_SEG}:\$HOME/.cargo/bin"
+  fi
+  if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
+    ADDON_PATH_SEG="${ADDON_PATH_SEG}:\$HOME/.composer/vendor/bin"
   fi
   sed -i -E "/\.myenvset/d" ${SETUP_USER_HOME}/.profile && \
-  echo "export PATH=\$HOME/.local/bin:\$HOME/bin:\$PATH${ADDON_PATH_SEG}" >> ${SETUP_USER_HOME}/.profile && \
+  echo "export PATH=\$HOME/.local/bin:\$HOME/bin:/usr/local/bin:/usr/local/sbin${ADDON_PATH_SEG}:\$PATH" >> ${SETUP_USER_HOME}/.profile && \
   echo "if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi" >> ${SETUP_USER_HOME}/.profile
   chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.profile
   sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,var/{log,tmp,run}} && \
@@ -653,8 +662,120 @@ setup_current_env_files(){
   if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
     sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.m2"
   fi
+  if [[ ${INSTALL_PKG_ENABLE_RUST} -eq 1 ]];then
+    sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.cargo"
+  fi
   if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
     sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.composer"
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.myenvset ]];then
+    cat >${SETUP_USER_HOME}/.myenvset <<EOL
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias vi='vim'
+alias xdmcp='/opt/X11/bin/X -query'
+alias air='~/.air'
+export PATH="\$HOME/.local/bin:\$HOME/bin:/usr/local/bin:/usr/local/sbin${ADDON_PATH_SEG}:\$PATH"
+export no_proxy="${NO_PROXY_LIST}"
+
+if [ -z "\$SSH_AUTH_SOCK" ] ; then
+    eval `ssh-agent -s`
+    ssh-add -k
+fi
+
+function setpx(){
+  local pxuri="\${1:-${PROXY_URI}}"
+  export https_proxy="\${pxuri}";
+  export http_proxy="\${pxuri}";
+  export all_proxy="\${pxuri}";
+}
+
+function setnopx(){
+    unset http_proxy
+    unset https_proxy
+    unset ftp_proxy
+    unset all_proxy
+}
+function gitsetpx(){
+  local pxuri="\${1:-${PROXY_URI}}"
+  git config --global http.proxy '\${pxuri}'
+  git config --global https.proxy '\${pxuri}'
+}
+function gitsetnopx(){
+    git config --global --unset http.proxy
+    git config --global --unset https.proxy
+}
+
+### CN mirrors setup ###
+if [[ -f \$HOME/.myenv_mirrors_cn && -f \$HOME/.myenv_use_cn ]]; then source \$HOME/.myenv_mirrors_cn;fi
+### local setup ###
+if [ -f \$HOME/.myenv_local ]; then source \$HOME/.myenv_local;fi
+### secret settings ###
+if [ -f \$HOME/.myenv_secret ]; then source \$HOME/.myenv_secret;fi
+### custom settings ###
+if [ -f \$HOME/.myenv_custom ]; then source \$HOME/.myenv_custom;fi
+EOL
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.myenvset
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.myenv_mirrors_cn ]];then
+    cat >${SETUP_USER_HOME}/.myenv_mirrors_cn <<EOL
+### CN mirrors setup ###
+#export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles
+#export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.aliyun.com/homebrew/homebrew-bottles
+export GO_SOURCE_URL="https://github.com/golang/go"
+export GOPROXY=https://goproxy.cn,direct
+export GOSUMDB=sum.golang.google.cn
+
+export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
+export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
+#export RUSTUP_DIST_SERVER=https://mirrors.tuna.tsinghua.edu.cn/rustup
+export NVM_NODEJS_ORG_MIRROR=https://npm.taobao.org/mirrors/node
+export NODEJS_ORG_MIRROR=https://npm.taobao.org/mirrors/node
+
+export PUB_HOSTED_URL=https://pub.flutter-io.cn
+export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+
+EOL
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.myenv_mirrors_cn
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.myenv_secret ]];then
+    cat >${SETUP_USER_HOME}/.myenv_secret <<EOL
+#export HOMEBREW_GITHUB_API_TOKEN=_
+EOL
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.myenv_secret
+  fi
+  if [[ ! -f ${SETUP_USER_HOME}/.myenv_local ]];then
+    cat >${SETUP_USER_HOME}/.myenv_local <<EOL
+export GOPATH=\$HOME/go
+export CSC_IDENTITY_AUTO_DISCOVERY=false
+export PIP_CONFIG_FILE=\$HOME/.pip/pip.conf
+
+# ip route | grep default | awk '{print \$3}'
+# or
+# cat /etc/resolv.conf | grep nameserver | awk '{ print \$2 }'
+#export WSL_HOST_IP=\$(awk '/nameserver / {print \$2; exit}' /etc/resolv.conf 2>/dev/null)
+#export DISPLAY=\${WSL_HOST_IP}:0.0
+export DISPLAY=:0.0
+export LIBGL_ALWAYS_INDIRECT=1
+setwslpx(){
+  local wslpxhost="\${1:-\$WSL_HOST_IP}"
+  local wslpxport="\${2:-1884}"
+  export https_proxy="http://\${wslpxhost}:\${wslpxport}";
+  export http_proxy="http://\${wslpxhost}:\${wslpxport}";
+  export all_proxy="http://\${wslpxhost}:\${wslpxport}";
+}
+EOL
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.myenv_local
+  fi
+
+  if [[ ${SERVER_REGION_CN} == "y" ]];then
+    sudo -H -u ${SETUP_USER} bash -c "touch ${SETUP_USER_HOME}/.myenv_use_cn"
   fi
   set_resume_step "setup_current_env_files" ${SETUP_USER}
 }
