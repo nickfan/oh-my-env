@@ -808,6 +808,67 @@ setup_package_addons(){
     my_host_ip="$(get_my_ip)"
     sed -i -E "/host.docker.internal/d" /etc/hosts && \
     echo "${my_host_ip} host.docker.internal" >> /etc/hosts
+    if [[ ! -d /etc/docker/ ]];then
+      mkdir -p /etc/docker
+    fi
+    if [[ ! -f /etc/docker/daemon.json ]];then
+      if [[ ${SERVER_REGION_CN} == "y" ]];then
+        cat >/etc/docker/daemon.json <<EOL
+{
+  "registry-mirrors": [
+    "https://registry.docker-cn.com",
+    "https://reg-mirror.qiniu.com",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://dockerhub.azk8s.cn",
+    "https://hub-mirror.c.163.com"
+  ],
+  "insecure-registries": [],
+  "hosts": ["unix:///var/run/docker.sock"],
+  "log-opts": {
+    "max-file": "5",
+    "max-size": "10m"
+  },
+  "debug": false,
+  "live-restore": true,
+  "experimental": true,
+  "features": {
+    "buildkit": true
+  },
+  "builder": {
+    "gc": {
+      "enabled": true,
+      "defaultKeepStorage": "20GB"
+    }
+  }
+}
+EOL
+      else
+        cat >/etc/docker/daemon.json <<EOL
+{
+  "registry-mirrors": [
+  ],
+  "insecure-registries": [],
+  "hosts": ["unix:///var/run/docker.sock"],
+  "log-opts": {
+    "max-file": "5",
+    "max-size": "10m"
+  },
+  "debug": false,
+  "live-restore": true,
+  "experimental": true,
+  "features": {
+    "buildkit": true
+  },
+  "builder": {
+    "gc": {
+      "enabled": true,
+      "defaultKeepStorage": "20GB"
+    }
+  }
+}
+EOL
+      fi
+    fi
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
@@ -873,6 +934,13 @@ EOL
       ln -s /etc/nginx /usr/local/tengine/conf
       ln -s /etc/nginx/sites-enabled /etc/nginx/vhost
       mv /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/0-default
+  fi
+
+  if [[ ${INSTALL_PKG_ENABLE_RUST} -eq 1 ]];then
+    sudo -H -u ${SETUP_USER} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+        sudo -H -u ${USER_NAME} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    fi
   fi
   set_resume_step "setup_package_addons" ${SETUP_USER}
 }
