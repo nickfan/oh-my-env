@@ -942,9 +942,9 @@ EOL
   fi
 
   if [[ ${INSTALL_PKG_ENABLE_RUST} -eq 1 ]];then
-    sudo -H -u ${SETUP_USER} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    sudo -H -u ${SETUP_USER} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
     if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-        sudo -H -u ${USER_NAME} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+        sudo -H -u ${USER_NAME} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
     fi
   fi
   set_resume_step "setup_package_addons" ${SETUP_USER}
