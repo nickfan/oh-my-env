@@ -47,7 +47,9 @@
 
 # script env startup setup
 
-INSTALL_PKG_ENABLE_ACT_USER=1
+CHECK_NEED_PROXY_URL="https://www.google.com/"
+
+INSTALL_PKG_ENABLE_ACT_USER=0
 INSTALL_PKG_ENABLE_OPS=1
 INSTALL_PKG_ENABLE_SRV=1
 INSTALL_PKG_ENABLE_CLI=1
@@ -58,7 +60,7 @@ INSTALL_PKG_ENABLE_JAVA=1
 INSTALL_PKG_ENABLE_PHP=1
 INSTALL_PKG_ENABLE_GOLANG=1
 INSTALL_PKG_ENABLE_DOCKER=1
-INSTALL_PKG_ENABLE_NGINX=1
+INSTALL_PKG_ENABLE_NGINX=0
 INSTALL_PKG_ENABLE_LIBS=1
 #
 #SKIP_check_installed=0
@@ -100,9 +102,6 @@ PKG_VER_bat="0.17.1"
 PKG_VER_go="1.17"
 PKG_VER_php_major="7.4"
 PKG_VER_node_major="12"
-PKG_VER_zsh_in_docker="1.1.1"
-
-CHECK_PROXY_URL="https://www.google.com/"
 
 SETUP_ACT_HOME=${HOME}
 SETUP_ROOT_HOME="/root"
@@ -264,7 +263,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   fi
   if [ ${USE_PROXY} == "auto" ];then
     echo "detecting if need use proxy..."
-    if ! check_url_is_ok "${CHECK_PROXY_URL}" ; then
+    if ! check_url_is_ok "${CHECK_NEED_PROXY_URL}" ; then
       echo "checking if proxy connection ok..."
       if ! check_proxy_is_ok "${PROXY_URI}" ; then
         echo "proxy connection invalid.";
@@ -276,8 +275,8 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   fi
   setup_env_set_proxy
 
-  if [ -f "${SETUP_ACT_HOME}/.ome/.setup.resume.env" ];then
-    source "${SETUP_ACT_HOME}/.ome/.setup.resume.env";
+  if [ -f "${SETUP_ACT_HOME}/.ome/steps.env" ];then
+    source "${SETUP_ACT_HOME}/.ome/steps.env";
   fi
 
   echo "======================"
@@ -389,7 +388,7 @@ check_url_is_ok(){
   fi
 }
 check_proxy_is_ok(){
-  status_code=$(curl --connect-timeout ${3:-7} --max-time ${4:-7} -x ${1:-${PROXY_URI}} -s -o /dev/null -w "%{http_code}" ${2:-${CHECK_PROXY_URL}})
+  status_code=$(curl --connect-timeout ${3:-7} --max-time ${4:-7} -x ${1:-${PROXY_URI}} -s -o /dev/null -w "%{http_code}" ${2:-${CHECK_NEED_PROXY_URL}})
   if [ "${status_code}" = "000" ]; then
     # 1 = false
     return 1
@@ -429,8 +428,9 @@ check_installed(){
   set_resume_step "check_installed"
 }
 set_installed(){
-  if [[ ${SKIP_set_installed} -eq 1 ]];then echo "[SKIP] check_installed";return 0;fi
+  if ! check_skip_step "set_installed";then return 0;fi
   echo "`date -u +'%Y-%m-%d %H:%M:%S %Z'`" > "${SETUP_ACT_HOME}/.ome/installed";
+  set_resume_step "set_installed"
 }
 check_skip_step(){
   STEP_LABEL_CURRENT=${1};
@@ -466,12 +466,12 @@ set_resume_step(){
       mkdir -p "${SETUP_ACT_HOME}/.ome";
       chown -R ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome;
     fi
-    if [[ ! -f "${SETUP_ACT_HOME}/.ome/.setup.resume.env" ]];then
-      touch ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
+    if [[ ! -f "${SETUP_ACT_HOME}/.ome/steps.env" ]];then
+      touch ${SETUP_ACT_HOME}/.ome/steps.env;
     fi
-    sed -i -E "/${SKIP_LABEL_VAR_NAME}=/d" ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
-    echo "${SKIP_LABEL_VAR_NAME}=1" >> ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
-    chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome/.setup.resume.env;
+    sed -i -E "/${SKIP_LABEL_VAR_NAME}=/d" ${SETUP_ACT_HOME}/.ome/steps.env;
+    echo "${SKIP_LABEL_VAR_NAME}=1" >> ${SETUP_ACT_HOME}/.ome/steps.env;
+    chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome/steps.env;
   fi
 }
 done_resume_setp(){
@@ -479,8 +479,8 @@ done_resume_setp(){
     mkdir -p "${SETUP_ACT_HOME}/.ome";
     chown -R ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome;
   fi
-  if [[ -f "${SETUP_ACT_HOME}/.ome/.setup.resume.env" ]];then
-    rm -rf "${SETUP_ACT_HOME}/.ome/.setup.resume.env";
+  if [[ -f "${SETUP_ACT_HOME}/.ome/steps.env" ]];then
+    rm -rf "${SETUP_ACT_HOME}/.ome/steps.env";
   fi
 }
 
@@ -629,7 +629,6 @@ install_package_system(){
 setup_current_env_files(){
   check_set_setup_user ${1:-${SETUP_USER}}
   if ! check_skip_step "setup_current_env_files" ${SETUP_USER};then return 0;fi
-
   ADDON_PATH_SEG=""
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     ADDON_PATH_SEG="${ADDON_PATH_SEG}:${SETUP_PKG_SEGMENT_GOLANG_PATH}"
@@ -637,24 +636,25 @@ setup_current_env_files(){
   sed -i -E "/\.myenvset/d" ${SETUP_USER_HOME}/.profile && \
   echo "export PATH=\$HOME/.local/bin:\$HOME/bin:\$PATH${ADDON_PATH_SEG}" >> ${SETUP_USER_HOME}/.profile && \
   echo "if [ -f \$HOME/.myenvset ]; then source \$HOME/.myenvset;fi" >> ${SETUP_USER_HOME}/.profile
-
-  mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,var/{log,tmp,run}} && \
+  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.profile
+  sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/{bin,tmp,setup,opt,var/{log,tmp,run}} && \
   mkdir -p ${SETUP_USER_HOME}/{.ssh/{config.d,ctrl.d},.local/bin,.config,.cache,.aria2} && \
-  mkdir -p ${SETUP_USER_HOME}/Downloads/temp
+  mkdir -p ${SETUP_USER_HOME}/Downloads/temp"
+
   if [[ ! -d ${SETUP_USER_HOME}/Code ]];then
-      ln -nfs /data/app ${SETUP_USER_HOME}/Code
+      sudo -H -u ${SETUP_USER} bash -c "ln -nfs /data/app ${SETUP_USER_HOME}/Code"
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
-    mkdir -p ${SETUP_USER_HOME}/go/{src,bin,pkg}
+    sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/go/{src,bin,pkg}"
   fi
   if [[ ${INSTALL_PKG_ENABLE_NODEJS} -eq 1 ]];then
-    mkdir -p ${SETUP_USER_HOME}/{.yarn,.npm,.node-gyp}
+    sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/{.yarn,.npm,.node-gyp}"
   fi
   if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
-    mkdir -p ${SETUP_USER_HOME}/.m2
+    sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.m2"
   fi
   if [[ ${INSTALL_PKG_ENABLE_PHP} -eq 1 ]];then
-    mkdir -p ${SETUP_USER_HOME}/.composer
+    sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.composer"
   fi
   set_resume_step "setup_current_env_files" ${SETUP_USER}
 }
@@ -883,12 +883,9 @@ setup_env_fonts(){
   chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share/fonts;
   sudo -H -u ${SETUP_USER} bash -c "cd ${SETUP_USER_HOME}/.local/share/fonts/font_powerline && bash ${SETUP_USER_HOME}/.local/share/fonts/font_powerline/install.sh && cd ${SETUP_USER_HOME}/.local/share/fonts && fc-cache -vf"
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-      mkdir -p ${USER_HOME}/setup && chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/setup/
       mkdir -p ${USER_HOME}/.local/share/fonts
-      cp -af ${SETUP_USER_HOME}/setup/font_powerline ${USER_HOME}/setup/ && \
       cp -af ${SETUP_USER_HOME}/.local/share/fonts ${USER_HOME}/.local/share/
   fi
-  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/setup/font_powerline && \
   chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local
   set_resume_step "setup_env_fonts" ${SETUP_USER}
 }
@@ -897,8 +894,9 @@ setup_env_conda(){
   if ! check_skip_step "setup_env_conda" ${SETUP_USER};then return 0;fi
 
   if [ -d ${SETUP_USER_HOME}/miniconda3 ];then return 0;fi
-  if [[ ${SERVER_REGION_CN} == "y" ]];then
-    cat >${SETUP_USER_HOME}/.condarc <<EOL
+  if [[ ! -f ${SETUP_USER_HOME}/.condarc ]];then
+    if [[ ${SERVER_REGION_CN} == "y" ]];then
+      cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
 auto_activate_base: true
 report_errors: false
@@ -924,8 +922,8 @@ custom_channels:
   simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
 EOL
 
-  else
-    cat >${SETUP_USER_HOME}/.condarc <<EOL
+    else
+      cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
 auto_activate_base: true
 report_errors: false
@@ -933,15 +931,56 @@ channels:
   - defaults
   - conda-forge
 EOL
+    fi
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.condarc
   fi
-  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.condarc
 
-  mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ${SETUP_USER_HOME}/miniconda.sh && \
-  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/miniconda.sh
+  if [[ ! -f ${SETUP_USER_HOME}/miniconda.sh ]];then
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ${SETUP_USER_HOME}/miniconda.sh && \
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/miniconda.sh
+  fi
+  if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+      if [[ ! -f ${USER_HOME}/miniconda.sh ]];then
+          cp -af ${SETUP_USER_HOME}/miniconda.sh ${USER_HOME}/miniconda.sh
+          chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/miniconda.sh
+      fi
+  fi
   sudo -H -u ${SETUP_USER} bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
-
   set_resume_step "setup_env_conda" ${SETUP_USER}
+}
+setup_env_sync_conf(){
+  check_set_setup_user ${1:-${SETUP_USER}}
+  if ! check_skip_step "setup_env_sync_conf" ${SETUP_USER};then return 0;fi
+  if [[ ! -f ${SETUP_USER_HOME}/.apt_proxy.conf ]];then
+    if [[ -f ${SETUP_ACT_HOME}/.apt_proxy.conf ]];then
+      cp -af ${SETUP_ACT_HOME}/.apt_proxy.conf ${SETUP_USER_HOME}/.apt_proxy.conf
+      chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.apt_proxy.conf
+    fi
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.nopx.sh ]];then
+    if [[ -f ${SETUP_ACT_HOME}/.nopx.sh ]];then
+      cp -af ${SETUP_ACT_HOME}/.nopx.sh ${SETUP_USER_HOME}/.nopx.sh
+      chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.nopx.sh
+    fi
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.setpx.sh ]];then
+    if [[ -f ${SETUP_ACT_HOME}/.setpx.sh ]];then
+      cp -af ${SETUP_ACT_HOME}/.setpx.sh ${SETUP_USER_HOME}/.setpx.sh
+      chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.setpx.sh
+    fi
+  fi
+  if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+    cp -af ${SETUP_USER_HOME}/.apt_proxy.conf ${USER_HOME}/.apt_proxy.conf && \
+    cp -af ${SETUP_USER_HOME}/.nopx.sh ${USER_HOME}/.nopx.sh && \
+    cp -af ${SETUP_USER_HOME}/.setpx.sh ${USER_HOME}/.setpx.sh
+
+    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.apt_proxy.conf && \
+    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.nopx.sh && \
+    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.setpx.sh
+  fi
+  set_resume_step "setup_env_sync_conf" ${SETUP_USER}
 }
 setup() {
 check_installed
@@ -963,7 +1002,9 @@ setup_env_fonts ${SETUP_ROOT}
 setup_env_fzf ${SETUP_ROOT}
 setup_env_fzf ${USER_NAME}
 setup_env_conda ${SETUP_ROOT}
-done_resume_setp
+setup_env_conda ${USER_NAME}
+#done_resume_setp
+setup_env_sync_conf ${SETUP_ROOT}
 set_installed
 print_status "Done."
 }
