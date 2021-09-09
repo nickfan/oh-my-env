@@ -255,6 +255,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   if [ ${SERVER_REGION_CN} == "auto" ];then
     echo "detecting server region in CN "
     SERVER_REGION_CODE=$(curl -fsSL https://ipapi.co/country_code)
+    echo "result: ${SERVER_REGION_CODE}"
     if [ ${SERVER_REGION_CODE} == "CN" ] || [ ${SERVER_REGION_CODE} == "cn" ];then
       SERVER_REGION_CN="y"
     else
@@ -896,10 +897,6 @@ setup_env_conda(){
   if ! check_skip_step "setup_env_conda" ${SETUP_USER};then return 0;fi
 
   if [ -d ${SETUP_USER_HOME}/miniconda3 ];then return 0;fi
-  mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ${SETUP_USER_HOME}/miniconda.sh && \
-  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/miniconda.sh
-  sudo -H -u ${SETUP_USER} bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
   if [[ ${SERVER_REGION_CN} == "y" ]];then
     cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
@@ -938,6 +935,12 @@ channels:
 EOL
   fi
   chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.condarc
+
+  mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
+  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ${SETUP_USER_HOME}/miniconda.sh && \
+  chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/miniconda.sh
+  sudo -H -u ${SETUP_USER} bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
+
   set_resume_step "setup_env_conda" ${SETUP_USER}
 }
 setup() {
