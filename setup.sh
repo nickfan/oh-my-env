@@ -661,6 +661,10 @@ setup_current_env_files(){
   fi
   if [[ ${INSTALL_PKG_ENABLE_JAVA} -eq 1 ]];then
     sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.m2"
+    if [[ ! -f ${SETUP_USER_HOME}/.m2/settings.xml && -f /usr/share/maven/conf/settings.xml ]];then
+      cp -af /usr/share/maven/conf/settings.xml ${SETUP_USER_HOME}/.m2/settings.xml
+      chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.m2/settings.xml
+    fi
   fi
   if [[ ${INSTALL_PKG_ENABLE_RUST} -eq 1 ]];then
     sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.cargo"
