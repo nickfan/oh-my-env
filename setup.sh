@@ -653,6 +653,9 @@ setup_current_env_files(){
   if [[ ! -d ${SETUP_USER_HOME}/Code ]];then
       sudo -H -u ${SETUP_USER} bash -c "ln -nfs /data/app ${SETUP_USER_HOME}/Code"
   fi
+  if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
+    sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.docker"
+  fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/go/{src,bin,pkg}"
   fi
@@ -813,6 +816,17 @@ setup_package_addons(){
     my_host_ip="$(get_my_ip)"
     sed -i -E "/host.docker.internal/d" /etc/hosts && \
     echo "${my_host_ip} host.docker.internal" >> /etc/hosts
+    if [[ ! -d /etc/systemd/system/docker.service.d ]];then
+      mkdir -p /etc/systemd/system/docker.service.d
+    fi
+    if [[ ! -f /etc/systemd/system/docker.service.d/override.conf ]];then
+      cat >/etc/systemd/system/docker.service.d/override.conf <<EOL
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd
+EOL
+    fi
+
     if [[ ! -d /etc/docker/ ]];then
       mkdir -p /etc/docker
     fi
@@ -872,6 +886,8 @@ EOL
 EOL
       fi
     fi
+    getent group docker || groupadd docker
+    sudo usermod -aG docker ${USER_NAME}
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
