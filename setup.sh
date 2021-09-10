@@ -1156,8 +1156,8 @@ EOL
   sudo -H -u ${SETUP_USER} bash ${SETUP_USER_HOME}/miniconda.sh -b -p ${SETUP_USER_HOME}/miniconda3
   sudo -H -u ${SETUP_USER} bash -c "${SETUP_USER_HOME}/miniconda3/bin/conda init zsh && \
     source ${SETUP_USER_HOME}/.zshrc && \
-    conda update -y -n base -c defaults conda && \
-    conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER}"
+    ${SETUP_USER_HOME}/miniconda3/bin/conda update -y -n base -c defaults conda && \
+    ${SETUP_USER_HOME}/miniconda3/bin/conda create -y --name ${CONDA_ENV_NAME} python=${CONDA_ENV_PY_VER}"
   set_resume_step "setup_env_conda" ${SETUP_USER}
 }
 setup_env_sync_conf(){
