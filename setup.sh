@@ -833,7 +833,6 @@ setup_package_addons(){
     "max-file": "5",
     "max-size": "10m"
   },
-  "debug": false,
   "live-restore": true,
   "experimental": true,
   "features": {
@@ -858,7 +857,6 @@ EOL
     "max-file": "5",
     "max-size": "10m"
   },
-  "debug": false,
   "live-restore": true,
   "experimental": true,
   "features": {
