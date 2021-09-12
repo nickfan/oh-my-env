@@ -1269,7 +1269,7 @@ setup_env_conda(){
     if [[ ${SERVER_REGION_CN} == "y" ]];then
       cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
-auto_activate_base: true
+auto_activate_base: false
 report_errors: false
 channel_alias: https://mirrors.tuna.tsinghua.edu.cn/anaconda
 channels:
@@ -1296,7 +1296,7 @@ EOL
     else
       cat >${SETUP_USER_HOME}/.condarc <<EOL
 show_channel_urls: true
-auto_activate_base: true
+auto_activate_base: false
 report_errors: false
 channels:
   - defaults
