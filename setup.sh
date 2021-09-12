@@ -1247,7 +1247,7 @@ setup_env_fonts(){
   if ! check_skip_step "setup_env_fonts" ${SETUP_USER};then return 0;fi
 
   if [ -d ${SETUP_USER_HOME}/.local/share/fonts ];then return 0;fi
-  mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/.local/share/fonts
+  mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/.local/share/fonts;
   wget -O ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip
   wget -O ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip
   git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/.local/share/fonts/font_powerline
@@ -1257,7 +1257,7 @@ setup_env_fonts(){
       mkdir -p ${USER_HOME}/.local/share/fonts
       cp -af ${SETUP_USER_HOME}/.local/share/fonts ${USER_HOME}/.local/share/
   fi
-  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local
+  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local/share/fonts;
   set_resume_step "setup_env_fonts" ${SETUP_USER}
 }
 setup_env_conda(){
