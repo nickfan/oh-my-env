@@ -533,19 +533,30 @@ setup_system_env_files(){
     sed -i -E "/GOROOT=/d" /etc/environment && \
     echo 'GOROOT="/usr/local/go"' >> /etc/environment
   fi
-  mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}} && \
-    ln -nfs /data/var /data/app/var && \
-    chown -R ${USER_NAME}:${USER_NAME} /data/app && \
-    chown -R ${USER_NAME}:${USER_NAME} /data/var && \
-    ln -nfs /data/app /data/wwwroot && \
-    ln -nfs /data/var/log /data/wwwlogs && \
-    ln -nfs /data/app /home/wwwroot && \
-    ln -nfs /data/var/log /home/wwwlogs && \
-    ln -nfs /home /Users
-    if [[ "${USER_NAME}" != "user" && "${USER_NAME}" != "root" ]];then
-      ln -nfs ${USER_HOME} /home/user
+  mkdir -p /data/{app/{backup,etc,tmp,certs,www,ops,downloads/temp},var/{log/app,run,tmp}}
+  if [[ ! -d /data/app/var ]];then
+    ln -nfs /data/var /data/app/var;
+  fi
+  chown -R ${USER_NAME}:${USER_NAME} /data/app && \
+  chown -R ${USER_NAME}:${USER_NAME} /data/var
+  if [[ ! -d /data/wwwroot ]];then
+    ln -nfs /data/app /data/wwwroot;
+  fi
+  if [[ ! -d /data/wwwlogs ]];then
+    ln -nfs /data/var/log /data/wwwlogs;
+  fi
+  if [[ ! -d /home/wwwroot ]];then
+    ln -nfs /data/app /home/wwwroot;
+  fi
+  if [[ ! -d /Users ]];then
+    ln -nfs /home /Users;
+  fi
+  if [[ "${USER_NAME}" != "user" && "${USER_NAME}" != "root" ]];then
+    if [[ ! -d /home/user ]];then
+      ln -nfs ${USER_HOME} /home/user;
     fi
-    set_resume_step "setup_system_env_files"
+  fi
+  set_resume_step "setup_system_env_files"
 }
 update_package_source(){
   if ! check_skip_step "update_package_source";then return 0;fi
@@ -784,6 +795,158 @@ EOL
 
   if [[ ${SERVER_REGION_CN} == "y" ]];then
     sudo -H -u ${SETUP_USER} bash -c "touch ${SETUP_USER_HOME}/.myenv_use_cn"
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.gitignore_global ]];then
+    cat >${SETUP_USER_HOME}/.gitignore_global <<EOL
+*~
+.DS_Store
+.project
+/.settings
+.idea/*
+/.idea/*
+.idea
+*.log
+*.iml
+
+EOL
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.gitignore_global
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.git-commit-template.txt ]];then
+    cat >${SETUP_USER_HOME}/.git-commit-template.txt <<EOL
+# <type>: (If applied, this commit will...) <subject> (Max 50 char)
+# |<----  Using a Maximum Of 50 Characters  ---->|
+
+
+# Explain why this change is being made
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+# Provide links or keys to any relevant tickets, articles or other resources
+# Example: Github issue #23
+
+# --- COMMIT END ---
+# Type can be
+#    feat     (new feature)
+#    fix      (bug fix)
+#    refactor (refactoring production code)
+#    style    (formatting, missing semi colons, etc; no code change)
+#    docs     (changes to documentation)
+#    test     (adding or refactoring tests; no production code change)
+#    chore    (updating grunt tasks etc; no production code change)
+# --------------------
+# Remember to
+#   - Capitalize the subject line
+#   - Use the imperative mood in the subject line
+#   - Do not end the subject line with a period
+#   - Separate subject from body with a blank line
+#   - Use the body to explain what and why vs. how
+#   - Can use multiple lines with "-" for bullet points in body
+# --------------------
+# For updated template, visit:
+# https://gist.github.com/adeekshith/cd4c95a064977cdc6c50
+# Licence CC
+EOL
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.git-commit-template.txt
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/.gitconfig_default ]];then
+    cat >${SETUP_USER_HOME}/.gitconfig_default <<EOL
+[user]
+	name = maintainer
+	email = me@example.com
+	username = maintainer
+[core]
+	excludesfile = ~/.gitignore_global
+	autocrlf = input
+	ignorecase = false
+	pager =
+	safecrlf = true
+[alias]
+	test = "!gi() { curl http://www.gitignore.io/api/$@ ;}; gi"
+	co = checkout
+	ci = commit
+	st = status
+	br = branch
+	lg = "log --graph --decorate=short --pretty=oneline"
+[pull]
+	rebase = false
+[push]
+	default = simple
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[format]
+  ;pretty = oneline
+  pretty = format:"%h - %cd - %an, %ce : %s"
+[commit]
+	template = ~/.git-commit-template.txt
+	gpgsign = false
+[color]
+  pager = true
+  ui = auto
+  status = auto
+  diff = auto
+  branch = auto
+  showBranch = auto
+  interactive = auto
+  grep = auto
+[color "status"]
+  header = black bold
+  branch = cyan
+  nobranch = red
+  unmerged = red
+  untracked = cyan
+  added = cyan
+  changed = red
+[color "diff"]
+  meta = red bold
+  frag = black bold
+  func = blue
+  old = red
+  new = cyan
+  commit = blue
+  whitespace = red
+  context = normal
+[color "branch"]
+  current = cyan
+  local = blue
+  remote = magenta
+  upstream = magenta
+  plain = normal
+[color "decorate"]
+  branch = blue
+  remoteBranch = magenta
+  tag = magenta
+  stash = cyan
+  HEAD = blue
+[color "interactive"]
+  prompt = red
+  header = red bold
+  error = red
+  help = black bold
+[color "grep"]
+  context = normal
+  match = cyan
+  filename = blue
+  function = blue
+  selected = normal
+  separator = red bold
+  linenumber = normal
+
+EOL
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.gitconfig_default
+  fi
+  if [[ ! -f ${SETUP_USER_HOME}/.gitconfig ]];then
+    cp -af ${SETUP_USER_HOME}/.gitconfig_default ${SETUP_USER_HOME}/.gitconfig
+    chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.gitconfig
+  fi
+  if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+    sudo -H -u ${SETUP_USER} bash -c "git config --global http.proxy ${PROXY_URI} && git config --global https.proxy ${PROXY_URI}"
+  else
+    sudo -H -u ${SETUP_USER} bash -c "git config --global --unset http.proxy && git config --global --unset https.proxy"
   fi
   set_resume_step "setup_current_env_files" ${SETUP_USER}
 }
@@ -1205,9 +1368,9 @@ update_package_source
 install_package_system
 set_user_shell ${SETUP_ROOT}
 set_user_shell ${USER_NAME}
-setup_package_addons ${SETUP_ROOT}
 setup_current_env_files ${SETUP_ROOT}
 setup_current_env_files ${USER_NAME}
+setup_package_addons ${SETUP_ROOT}
 setup_env_zsh ${SETUP_ROOT}
 setup_env_tmux ${SETUP_ROOT}
 setup_env_fonts ${SETUP_ROOT}
