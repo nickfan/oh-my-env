@@ -1248,12 +1248,11 @@ setup_env_fonts(){
   if ! check_skip_step "setup_env_fonts" ${SETUP_USER};then return 0;fi
 
   if [ -d ${SETUP_USER_HOME}/.local/share/fonts ];then return 0;fi
-  mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share/fonts && cd ${SETUP_USER_HOME}/.local/share/fonts;
+  mkdir -p ${SETUP_USER_HOME}/.local/share/fonts && chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share && cd ${SETUP_USER_HOME}/.local/share/fonts;
   wget -O ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip
   wget -O ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip
-  git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/.local/share/fonts/font_powerline
   chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share;
-  sudo -H -u ${SETUP_USER} bash -c "cd ${SETUP_USER_HOME}/.local/share/fonts/font_powerline && bash ${SETUP_USER_HOME}/.local/share/fonts/font_powerline/install.sh && cd ${SETUP_USER_HOME}/.local/share/fonts && fc-cache -vf"
+  sudo -H -u ${SETUP_USER} bash -c "git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/.local/share/fonts/font_powerline && cd ${SETUP_USER_HOME}/.local/share/fonts/font_powerline && bash ${SETUP_USER_HOME}/.local/share/fonts/font_powerline/install.sh && cd ${SETUP_USER_HOME}/.local/share/fonts && fc-cache -vf"
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
       mkdir -p ${USER_HOME}/.local/share/fonts
       cp -af ${SETUP_USER_HOME}/.local/share/fonts ${USER_HOME}/.local/share/
