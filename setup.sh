@@ -430,6 +430,7 @@ check_installed(){
 set_installed(){
   if ! check_skip_step "set_installed";then return 0;fi
   echo "`date -u +'%Y-%m-%d %H:%M:%S %Z'`" > "${SETUP_ACT_HOME}/.ome/installed";
+  chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.ome/installed;
   set_resume_step "set_installed"
 }
 check_skip_step(){
@@ -1251,13 +1252,13 @@ setup_env_fonts(){
   wget -O ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Hack.zip
   wget -O ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip && unzip ${SETUP_USER_HOME}/.local/share/fonts/Meslo.zip
   git clone https://github.com/powerline/fonts.git --depth=1 ${SETUP_USER_HOME}/.local/share/fonts/font_powerline
-  chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share/fonts;
+  chown -R ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.local/share;
   sudo -H -u ${SETUP_USER} bash -c "cd ${SETUP_USER_HOME}/.local/share/fonts/font_powerline && bash ${SETUP_USER_HOME}/.local/share/fonts/font_powerline/install.sh && cd ${SETUP_USER_HOME}/.local/share/fonts && fc-cache -vf"
   if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
       mkdir -p ${USER_HOME}/.local/share/fonts
       cp -af ${SETUP_USER_HOME}/.local/share/fonts ${USER_HOME}/.local/share/
+      chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local/share;
   fi
-  chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME}/.local/share/fonts;
   set_resume_step "setup_env_fonts" ${SETUP_USER}
 }
 setup_env_conda(){
