@@ -305,7 +305,11 @@ unset ftp_proxy
 unset all_proxy
 EOL
   if [ ! -z ${PROXY_URI} ];then
-    echo 'Acquire::http::Proxy "${PROXY_URI}";' >${SETUP_ACT_HOME}/.apt_proxy.conf
+    if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+      echo 'Acquire::http::Proxy "${PROXY_URI}";' >${SETUP_ACT_HOME}/.apt_proxy.conf
+    else
+      touch ${SETUP_ACT_HOME}/.apt_proxy.conf
+    fi
     cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
 #!/usr/bin/env bash
 export https_proxy="${PROXY_URI}";
