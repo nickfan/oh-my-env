@@ -99,7 +99,7 @@ PKG_VER_wkhtmltox="0.12.6-1"
 PKG_VER_fd="8.2.1"
 PKG_VER_ripgrep="12.1.1"
 PKG_VER_bat="0.17.1"
-PKG_VER_go="1.17.3"
+PKG_VER_go="1.17.7"
 PKG_VER_php_major="7.4"
 PKG_VER_node_major="12"
 
@@ -173,7 +173,7 @@ fi
 init_env_conf(){
   SERVER_REGION_CN_DEFAULT="auto"
   USE_PROXY_DEFAULT="auto"
-  PROXY_URI_DEFAULT="http://127.0.0.1:1884"
+  PROXY_URI_DEFAULT="http://127.0.0.1:7890"
   NO_PROXY_LIST_DEFAULT="localhost,.example.com,169.254.169.254,128.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24"
   USER_NAME_DEFAULT="www"
   USER_PASSWORD_DEFAULT="abc123"
@@ -789,7 +789,7 @@ export DISPLAY=:0.0
 export LIBGL_ALWAYS_INDIRECT=1
 setwslpx(){
   local wslpxhost="\${1:-\$WSL_HOST_IP}"
-  local wslpxport="\${2:-1884}"
+  local wslpxport="\${2:-7890}"
   export https_proxy="http://\${wslpxhost}:\${wslpxport}";
   export http_proxy="http://\${wslpxhost}:\${wslpxport}";
   export all_proxy="http://\${wslpxhost}:\${wslpxport}";
@@ -1003,14 +1003,13 @@ EOL
         cat >/etc/docker/daemon.json <<EOL
 {
   "registry-mirrors": [
-    "https://registry.docker-cn.com",
-    "https://reg-mirror.qiniu.com",
     "https://docker.mirrors.ustc.edu.cn",
-    "https://dockerhub.azk8s.cn",
     "https://hub-mirror.c.163.com"
   ],
   "insecure-registries": [],
   "hosts": ["unix:///var/run/docker.sock"],
+  "data-root": "/var/lib/docker",
+  "exec-opts": ["native.cgroupdriver=systemd"],
   "log-opts": {
     "max-file": "5",
     "max-size": "10m"
@@ -1035,6 +1034,8 @@ EOL
   ],
   "insecure-registries": [],
   "hosts": ["unix:///var/run/docker.sock"],
+  "data-root": "/var/lib/docker",
+  "exec-opts": ["native.cgroupdriver=systemd"],
   "log-opts": {
     "max-file": "5",
     "max-size": "10m"
