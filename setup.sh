@@ -90,7 +90,7 @@ INSTALL_PKGS_SEGMENT_RUBY="ruby ruby-dev"
 INSTALL_PKGS_SEGMENT_NODEJS="nodejs yarn"
 INSTALL_PKGS_SEGMENT_JAVA="openjdk-8-jdk maven"
 INSTALL_PKGS_SEGMENT_PHP=""
-INSTALL_PKGS_SEGMENT_DOCKER="docker-ce docker-ce-cli containerd.io"
+INSTALL_PKGS_SEGMENT_DOCKER="docker-ce docker-ce-cli containerd.io docker-compose-plugin"
 INSTALL_PKGS_SEGMENT_NGINX="nginx-extras"
 INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
@@ -306,7 +306,7 @@ unset all_proxy
 EOL
   if [ ! -z ${PROXY_URI} ];then
     if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
-      echo 'Acquire::http::Proxy "${PROXY_URI}";' >${SETUP_ACT_HOME}/.apt_proxy.conf
+      echo "Acquire::http::Proxy \"${PROXY_URI}\";" >${SETUP_ACT_HOME}/.apt_proxy.conf
     else
       touch ${SETUP_ACT_HOME}/.apt_proxy.conf
     fi
@@ -978,7 +978,7 @@ setup_package_addons(){
     exec_cmd "wget -O ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
     mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
     chmod +x /usr/local/bin/ctop
-    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)"
+    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.5.1/docker-compose-$(uname -s)-$(uname -m)"
     mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     my_host_ip="$(get_my_ip)"
