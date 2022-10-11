@@ -101,7 +101,7 @@ PKG_VER_ripgrep="12.1.1"
 PKG_VER_bat="0.17.1"
 PKG_VER_go="1.17.7"
 PKG_VER_php_major="7.4"
-PKG_VER_node_major="12"
+PKG_VER_node_major="14"
 
 SETUP_ACT_HOME=${HOME}
 SETUP_ROOT_HOME="/root"
