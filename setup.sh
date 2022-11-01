@@ -82,20 +82,21 @@ INSTALL_PKG_ENABLE_LIBS=1
 INSTALL_PKGS_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 apt-transport-https ca-certificates lsb-release software-properties-common gnupg-agent gnupg2 pass rng-tools openssh-client ntp ntpdate language-pack-en-base language-pack-zh-hans zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy locales-all"
 INSTALL_PKGS_SYSTEM="build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof ctags vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc tig jq"
 
-INSTALL_PKGS_SEGMENT_OPS="vim-nox neovim python-neovim python3-neovim xxd wamerican lnav htop iftop iotop nethogs dstat multitail ncdu ranger silversearcher-ag asciinema"
+INSTALL_PKGS_SEGMENT_OPS="vim-nox neovim python3-neovim xxd wamerican lnav htop iftop iotop nethogs dstat multitail ncdu ranger silversearcher-ag asciinema"
 INSTALL_PKGS_SEGMENT_SRV="openssh-server"
 INSTALL_PKGS_SEGMENT_CLI="redis-tools mysql-client zookeeper zookeeper-bin"
-INSTALL_PKGS_SEGMENT_PYTHON="python python-dev python-pip python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml"
+INSTALL_PKGS_SEGMENT_PYTHON="python python-dev python-setuptools python-lxml python3 python3-dev python3-pip python3-setuptools python3-venv python3-lxml"
 INSTALL_PKGS_SEGMENT_RUBY="ruby ruby-dev"
 INSTALL_PKGS_SEGMENT_NODEJS="nodejs yarn"
 INSTALL_PKGS_SEGMENT_JAVA="openjdk-8-jdk maven"
 INSTALL_PKGS_SEGMENT_PHP=""
 INSTALL_PKGS_SEGMENT_DOCKER="docker-ce docker-ce-cli containerd.io docker-compose-plugin"
 INSTALL_PKGS_SEGMENT_NGINX="nginx-extras"
-INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
+#INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
+INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
-PKG_VER_wkhtmltox="0.12.6-1"
+PKG_VER_wkhtmltox="0.12.6.1-2"
 PKG_VER_fd="8.2.1"
 PKG_VER_ripgrep="12.1.1"
 PKG_VER_bat="0.17.1"
@@ -113,6 +114,8 @@ SETUP_USER_HOME_DEFAULT=${SETUP_ACT_HOME}
 ACT_USER=${SUDO_USER:-$(whoami)}
 ACT_GROUP=$(id -gn ${ACT_USER})
 SETUP_USER=${ACT_USER}
+
+SETUP_RELEASE=$(lsb_release -cs)
 
 # script env detect setup
 
