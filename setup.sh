@@ -100,7 +100,7 @@ PKG_VER_wkhtmltox="0.12.6-1"
 PKG_VER_fd="8.2.1"
 PKG_VER_ripgrep="12.1.1"
 PKG_VER_bat="0.17.1"
-PKG_VER_go="1.17.7"
+PKG_VER_go="1.19.2"
 PKG_VER_php_major="7.4"
 PKG_VER_node_major="14"
 
@@ -116,6 +116,8 @@ ACT_GROUP=$(id -gn ${ACT_USER})
 SETUP_USER=${ACT_USER}
 
 SETUP_RELEASE=$(lsb_release -cs)
+SETUP_OS_SYSTEM=$(uname -s)
+SETUP_OS_MACHINE=$(uname -m)
 
 # script env detect setup
 
@@ -983,7 +985,8 @@ setup_package_addons(){
     exec_cmd "wget -O ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
     mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
     chmod +x /usr/local/bin/ctop
-    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.5.1/docker-compose-$(uname -s)-$(uname -m)"
+
+    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
     mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     my_host_ip="$(get_my_ip)"
@@ -1064,9 +1067,9 @@ EOL
     sudo usermod -aG docker ${USER_NAME}
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
-    GOLANG_DL_URL="https://golang.org/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+    GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
     if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
-        GOLANG_DL_URL="https://golang.google.cn/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+        GOLANG_DL_URL="https://studygolang.com/dl/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
     fi
     exec_cmd "wget ${GOLANG_DL_URL}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf go${PKG_VER_go}.linux-amd64.tar.gz && \
