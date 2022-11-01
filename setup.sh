@@ -1067,11 +1067,11 @@ EOL
     sudo usermod -aG docker ${USER_NAME}
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
-    GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+    GOLANG_DL_URL="https://gomirrors.org/dl/go/go${PKG_VER_go}.linux-amd64.tar.gz"
     if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
-        GOLANG_DL_URL="https://gomirrors.org/dl/go/go${PKG_VER_go}.linux-amd64.tar.gz"
+        GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
     fi
-    exec_cmd "wget ${GOLANG_DL_URL}"
+    exec_cmd "wget –no-check-certificate ${GOLANG_DL_URL}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf go${PKG_VER_go}.linux-amd64.tar.gz && \
 echo $' \n\
 export GOROOT="/usr/local/go" \n\
