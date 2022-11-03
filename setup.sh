@@ -178,6 +178,7 @@ fi
 init_env_conf(){
   SERVER_REGION_CN_DEFAULT="auto"
   USE_PROXY_DEFAULT="auto"
+  REPO_USE_PROXY_DEFAULT="auto"
   PROXY_URI_DEFAULT="http://127.0.0.1:7890"
   NO_PROXY_LIST_DEFAULT="localhost,.example.com,169.254.169.254,128.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24"
   USER_NAME_DEFAULT="www"
@@ -190,6 +191,7 @@ init_env_conf(){
 
   SERVER_REGION_CN=${SERVER_REGION_CN_DEFAULT}
   USE_PROXY=${USE_PROXY_DEFAULT}
+  REPO_USE_PROXY=${REPO_USE_PROXY_DEFAULT}
   PROXY_URI=${PROXY_URI_DEFAULT}
   NO_PROXY_LIST=${NO_PROXY_LIST_DEFAULT}
   USER_NAME=${USER_NAME_DEFAULT}
@@ -217,6 +219,7 @@ init_env_conf(){
       cat >${SETUP_ACT_HOME}/.omerc.example <<EOL
 SERVER_REGION_CN=${SERVER_REGION_CN_DEFAULT}
 USE_PROXY=${USE_PROXY_DEFAULT}
+REPO_USE_PROXY=${REPO_USE_PROXY_DEFAULT}
 PROXY_URI=${PROXY_URI_DEFAULT}
 NO_PROXY_LIST="${NO_PROXY_LIST_DEFAULT}"
 USER_NAME=${USER_NAME_DEFAULT}
@@ -234,6 +237,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   if [ ${SCRIPT_NONINTERACTIVE} -eq 0 ] ;then
     read -e -p "SERVER_REGION_CN: " -i ${SERVER_REGION_CN} SERVER_REGION_CN
     read -e -p "USE_PROXY: " -i ${USE_PROXY} USE_PROXY
+    read -e -p "REPO_USE_PROXY: " -i ${REPO_USE_PROXY} REPO_USE_PROXY
     read -e -p "PROXY_URI: " -i ${PROXY_URI} PROXY_URI
     read -e -p "USER_NAME: " -i ${USER_NAME} USER_NAME
     read -e -p "USER_PASSWORD: " -i ${USER_PASSWORD} USER_PASSWORD
@@ -273,8 +277,14 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
       if ! check_proxy_is_ok "${PROXY_URI}" ; then
         echo "proxy connection invalid.";
         USE_PROXY="n"
+        if [ ${REPO_USE_PROXY} == "auto" ];then
+          REPO_USE_PROXY="n"
+        fi
       else
         USE_PROXY="y"
+        if [ ${REPO_USE_PROXY} == "auto" ];then
+          REPO_USE_PROXY="y"
+        fi
       fi
     fi
   fi
@@ -291,6 +301,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   echo "SETUP_USER: [${SETUP_USER}]"
   echo "SERVER_REGION_CN: [${SERVER_REGION_CN}] "
   echo "USE_PROXY: [${USE_PROXY}] "
+  echo "REPO_USE_PROXY: [${REPO_USE_PROXY}] "
   echo "PROXY_URI: [${PROXY_URI}] "
   echo "USER_NAME: [${USER_NAME}] "
   echo "USER_PASSWORD: [${USER_PASSWORD}] "
@@ -311,7 +322,7 @@ unset all_proxy
 EOL
   if [ ! -z ${PROXY_URI} ];then
     if [[ ! -f ${SETUP_ACT_HOME}/.apt_proxy.conf ]];then
-      if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+      if [[ "${REPO_USE_PROXY}" == "ok" || "${REPO_USE_PROXY}" == "y" || "${REPO_USE_PROXY}" == "Y" || "${REPO_USE_PROXY}" == "yes" || "${REPO_USE_PROXY}" == "Yes"  || "${REPO_USE_PROXY}" == "YES" ]];then
         echo "Acquire::http::Proxy \"${PROXY_URI}\";" >${SETUP_ACT_HOME}/.apt_proxy.conf
       else
         touch ${SETUP_ACT_HOME}/.apt_proxy.conf
@@ -339,18 +350,31 @@ EOL
   chmod +x ${SETUP_ACT_HOME}/.nopx.sh;
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.setpx.sh;
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.nopx.sh;
-  if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
-    if [ -f "${SETUP_ACT_HOME}/.setpx.sh" ];then
-      source ${SETUP_ACT_HOME}/.setpx.sh;
-      echo "now active proxy settings";
-      echo "https_proxy: ${https_proxy}";
-      echo "http_proxy: ${http_proxy}";
-      echo "all_proxy: ${all_proxy}";
-      echo "no_proxy: ${no_proxy}";
-    else
+}
+activate_env_set_proxy(){
+  if [ -f "${SETUP_ACT_HOME}/.setpx.sh" ];then
+    source ${SETUP_ACT_HOME}/.setpx.sh;
+    echo "now activate proxy settings";
+    echo "https_proxy: ${https_proxy}";
+    echo "http_proxy: ${http_proxy}";
+    echo "all_proxy: ${all_proxy}";
+    echo "no_proxy: ${no_proxy}";
+  else
       echo "proxy settings file not found";
       exit 1;
-    fi
+  fi
+}
+deactivate_env_set_proxy(){
+  if [ -f "${SETUP_ACT_HOME}/.nopx.sh" ];then
+    source ${SETUP_ACT_HOME}/.nopx.sh;
+    echo "now deactivate proxy settings";
+    echo "https_proxy: ${https_proxy}";
+    echo "http_proxy: ${http_proxy}";
+    echo "all_proxy: ${all_proxy}";
+    echo "no_proxy: ${no_proxy}";
+  else
+    echo "proxy settings file not found";
+    exit 1;
   fi
 }
 print_status() {
@@ -967,26 +991,39 @@ setup_package_addons(){
   if ! check_skip_step "setup_package_addons" ${SETUP_USER};then return 0;fi
 
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  exec_cmd "wget https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
+  if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
+  fi
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
-    exec_cmd "wget https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb ]];then
+        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
+    fi
     dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
-    exec_cmd "wget https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb ]];then
+        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
+    fi
     dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
-    exec_cmd "wget https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
+    fi
     dpkg -i bat_${PKG_VER_bat}_amd64.deb
   fi
   if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
     exec_cmd "curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash"
-    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.10-beta.1/dry-linux-amd64"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/dry-linux-amd64 ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.10-beta.1/dry-linux-amd64"
+    fi
     mv ${SETUP_USER_HOME}/setup/dry-linux-amd64 /usr/local/bin/dry
     chmod +x /usr/local/bin/dry
-    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/ctop ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
+    fi
     mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
     chmod +x /usr/local/bin/ctop
-
-    exec_cmd "wget -O ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/docker-compose ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
+    fi
     mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     my_host_ip="$(get_my_ip)"
@@ -1067,11 +1104,13 @@ EOL
     sudo usermod -aG docker ${USER_NAME}
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
-    GOLANG_DL_URL="https://gomirrors.org/dl/go/go${PKG_VER_go}.linux-amd64.tar.gz"
-    if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
-        GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/go${PKG_VER_go}.linux-amd64.tar.gz ]];then
+      GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+      if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
+        GOLANG_DL_URL="https://gomirrors.org/dl/go/go${PKG_VER_go}.linux-amd64.tar.gz"
+      fi
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/go${PKG_VER_go}.linux-amd64.tar.gz ${GOLANG_DL_URL}"
     fi
-    exec_cmd "wget –no-check-certificate ${GOLANG_DL_URL}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf go${PKG_VER_go}.linux-amd64.tar.gz && \
 echo $' \n\
 export GOROOT="/usr/local/go" \n\
@@ -1376,12 +1415,14 @@ init_env_conf
 base_env_check_setup
 setup_dist_user_group
 setup_system_env_files
+deactivate_env_set_proxy
 update_package_source
 install_package_system
 set_user_shell ${SETUP_ROOT}
 set_user_shell ${USER_NAME}
 setup_current_env_files ${SETUP_ROOT}
 setup_current_env_files ${USER_NAME}
+activate_env_set_proxy
 setup_package_addons ${SETUP_ROOT}
 setup_env_zsh ${SETUP_ROOT}
 setup_env_tmux ${SETUP_ROOT}
