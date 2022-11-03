@@ -315,6 +315,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
 setup_env_set_proxy(){
   cat >${SETUP_ACT_HOME}/.nopx.sh <<EOL
 #!/usr/bin/env bash
+unset PROXY_URI
 unset http_proxy
 unset https_proxy
 unset ftp_proxy
@@ -330,6 +331,7 @@ EOL
     fi
     cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
 #!/usr/bin/env bash
+export PROXY_URI="${PROXY_URI}";
 export https_proxy="${PROXY_URI}";
 export http_proxy="${PROXY_URI}";
 export all_proxy="${PROXY_URI}";
@@ -339,6 +341,7 @@ EOL
     touch ${SETUP_ACT_HOME}/.apt_proxy.conf
     cat >${SETUP_ACT_HOME}/.setpx.sh <<EOL
 #!/usr/bin/env bash
+export PROXY_URI=
 export https_proxy=
 export http_proxy=
 export all_proxy=
@@ -356,6 +359,7 @@ activate_env_set_proxy(){
     if [ -f "${SETUP_ACT_HOME}/.setpx.sh" ];then
       source ${SETUP_ACT_HOME}/.setpx.sh;
       echo "now activate proxy settings";
+      echo "PROXY_URI: ${PROXY_URI}";
       echo "https_proxy: ${https_proxy}";
       echo "http_proxy: ${http_proxy}";
       echo "all_proxy: ${all_proxy}";
@@ -370,6 +374,7 @@ deactivate_env_set_proxy(){
   if [ -f "${SETUP_ACT_HOME}/.nopx.sh" ];then
     source ${SETUP_ACT_HOME}/.nopx.sh;
     echo "now deactivate proxy settings";
+    echo "PROXY_URI: ${PROXY_URI}";
     echo "https_proxy: ${https_proxy}";
     echo "http_proxy: ${http_proxy}";
     echo "all_proxy: ${all_proxy}";
@@ -754,15 +759,20 @@ function setpx(){
 }
 
 function setnopx(){
+    unset PROXY_URI
     unset http_proxy
     unset https_proxy
     unset ftp_proxy
     unset all_proxy
 }
 function gitsetpx(){
-  local pxuri="\${1:-${PROXY_URI}}"
-  git config --global http.proxy '\${pxuri}'
-  git config --global https.proxy '\${pxuri}'
+  if [[ -z "\${1}" ]] && [[ -f \${HOME}/.setpx.sh ]] ;then
+    source \${HOME}/.setpx.sh
+  else
+    local pxuri="\${1:-${PROXY_URI}}"
+    git config --global http.proxy '\${pxuri}'
+    git config --global https.proxy '\${pxuri}'
+  fi
 }
 function gitsetnopx(){
     git config --global --unset http.proxy
