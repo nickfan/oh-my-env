@@ -743,10 +743,14 @@ if [ -z "\$SSH_AUTH_SOCK" ] ; then
 fi
 
 function setpx(){
-  local pxuri="\${1:-${PROXY_URI}}"
-  export https_proxy="\${pxuri}";
-  export http_proxy="\${pxuri}";
-  export all_proxy="\${pxuri}";
+  if [[ -z "\${1}" ]] && [[ -f \${HOME}/.setpx.sh ]] ;then
+    source \${HOME}/.setpx.sh
+  else
+    local pxuri="\${1:-${PROXY_URI}}"
+    export https_proxy="\${pxuri}";
+    export http_proxy="\${pxuri}";
+    export all_proxy="\${pxuri}";
+  fi
 }
 
 function setnopx(){
