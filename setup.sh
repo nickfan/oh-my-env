@@ -352,16 +352,18 @@ EOL
   chown ${ACT_USER}:${ACT_GROUP} ${SETUP_ACT_HOME}/.nopx.sh;
 }
 activate_env_set_proxy(){
-  if [ -f "${SETUP_ACT_HOME}/.setpx.sh" ];then
-    source ${SETUP_ACT_HOME}/.setpx.sh;
-    echo "now activate proxy settings";
-    echo "https_proxy: ${https_proxy}";
-    echo "http_proxy: ${http_proxy}";
-    echo "all_proxy: ${all_proxy}";
-    echo "no_proxy: ${no_proxy}";
-  else
-      echo "proxy settings file not found";
-      exit 1;
+  if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+    if [ -f "${SETUP_ACT_HOME}/.setpx.sh" ];then
+      source ${SETUP_ACT_HOME}/.setpx.sh;
+      echo "now activate proxy settings";
+      echo "https_proxy: ${https_proxy}";
+      echo "http_proxy: ${http_proxy}";
+      echo "all_proxy: ${all_proxy}";
+      echo "no_proxy: ${no_proxy}";
+    else
+        echo "proxy settings file not found";
+        exit 1;
+    fi
   fi
 }
 deactivate_env_set_proxy(){
