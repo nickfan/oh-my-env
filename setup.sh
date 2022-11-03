@@ -1013,21 +1013,21 @@ setup_package_addons(){
   fi
   if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
     exec_cmd "curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash"
-    if [[ ! -f ${SETUP_USER_HOME}/setup/dry-linux-amd64 ]];then
+    if [[ ! -f /usr/local/bin/dry ]];then
       exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.10-beta.1/dry-linux-amd64"
+      mv ${SETUP_USER_HOME}/setup/dry-linux-amd64 /usr/local/bin/dry
+      chmod +x /usr/local/bin/dry
     fi
-    mv ${SETUP_USER_HOME}/setup/dry-linux-amd64 /usr/local/bin/dry
-    chmod +x /usr/local/bin/dry
-    if [[ ! -f ${SETUP_USER_HOME}/setup/ctop ]];then
+    if [[ ! -f /usr/local/bin/ctop ]];then
       exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
+      mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
+      chmod +x /usr/local/bin/ctop
     fi
-    mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
-    chmod +x /usr/local/bin/ctop
-    if [[ ! -f ${SETUP_USER_HOME}/setup/docker-compose ]];then
+    if [[ ! -f /usr/local/bin/docker-compose ]];then
       exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
+      mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
+      chmod +x /usr/local/bin/docker-compose
     fi
-    mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
     my_host_ip="$(get_my_ip)"
     sed -i -E "/host.docker.internal/d" /etc/hosts && \
     echo "${my_host_ip} host.docker.internal" >> /etc/hosts
@@ -1050,7 +1050,6 @@ EOL
         cat >/etc/docker/daemon.json <<EOL
 {
   "registry-mirrors": [
-    "https://docker.mirrors.ustc.edu.cn",
     "https://hub-mirror.c.163.com"
   ],
   "insecure-registries": [],
