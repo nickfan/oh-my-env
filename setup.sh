@@ -315,7 +315,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
 setup_env_set_proxy(){
   cat >${SETUP_ACT_HOME}/.nopx.sh <<EOL
 #!/usr/bin/env bash
-unset PROXY_URI
+#unset PROXY_URI
 unset http_proxy
 unset https_proxy
 unset ftp_proxy
@@ -759,7 +759,7 @@ function setpx(){
 }
 
 function setnopx(){
-    unset PROXY_URI
+#    unset PROXY_URI
     unset http_proxy
     unset https_proxy
     unset ftp_proxy
@@ -768,6 +768,9 @@ function setnopx(){
 function gitsetpx(){
   if [[ -z "\${1}" ]] && [[ -f \${HOME}/.setpx.sh ]] ;then
     source \${HOME}/.setpx.sh
+    local pxuri="\${PROXY_URI}"
+    git config --global http.proxy '\${pxuri}'
+    git config --global https.proxy '\${pxuri}'
   else
     local pxuri="\${1:-${PROXY_URI}}"
     git config --global http.proxy '\${pxuri}'
