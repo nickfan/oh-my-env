@@ -178,7 +178,7 @@ fi
 init_env_conf(){
   SERVER_REGION_CN_DEFAULT="auto"
   USE_PROXY_DEFAULT="auto"
-  REPO_USE_PROXY_DEFAULT="auto"
+  REPO_USE_PROXY_DEFAULT="n"
   PROXY_URI_DEFAULT="http://127.0.0.1:7890"
   NO_PROXY_LIST_DEFAULT="localhost,.example.com,169.254.169.254,128.0.0.1,10.96.0.0/12,192.168.99.0/24,192.168.39.0/24"
   USER_NAME_DEFAULT="www"
@@ -283,7 +283,7 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
       else
         USE_PROXY="y"
         if [ ${REPO_USE_PROXY} == "auto" ];then
-          REPO_USE_PROXY="y"
+          REPO_USE_PROXY="n"
         fi
       fi
     fi
