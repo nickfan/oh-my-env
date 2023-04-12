@@ -57,7 +57,7 @@ INSTALL_PKG_ENABLE_RUBY=1
 INSTALL_PKG_ENABLE_NODEJS=1
 INSTALL_PKG_ENABLE_JAVA=1
 INSTALL_PKG_ENABLE_RUST=1
-INSTALL_PKG_ENABLE_PHP=1
+INSTALL_PKG_ENABLE_PHP=0
 INSTALL_PKG_ENABLE_GOLANG=1
 INSTALL_PKG_ENABLE_DOCKER=1
 INSTALL_PKG_ENABLE_NGINX=0
@@ -184,7 +184,7 @@ init_env_conf(){
   USER_NAME_DEFAULT="www"
   USER_PASSWORD_DEFAULT="abc123"
   CONDA_ENV_NAME_DEFAULT="myenv"
-  CONDA_ENV_PY_VER_DEFAULT="3.7"
+  CONDA_ENV_PY_VER_DEFAULT="3.10"
   TZ_DEFAULT="etc/UTC"
   TERM_DEFAULT="xterm-256color"
   ZSH_THEME_DEFAULT="powerlevel10k"
@@ -1031,17 +1031,17 @@ setup_package_addons(){
   if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
     exec_cmd "curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash"
     if [[ ! -f /usr/local/bin/dry ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.10-beta.1/dry-linux-amd64"
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.11.1/dry-linux-amd64"
       mv ${SETUP_USER_HOME}/setup/dry-linux-amd64 /usr/local/bin/dry
       chmod +x /usr/local/bin/dry
     fi
     if [[ ! -f /usr/local/bin/ctop ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64"
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ctop https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64"
       mv ${SETUP_USER_HOME}/setup/ctop /usr/local/bin/ctop
       chmod +x /usr/local/bin/ctop
     fi
     if [[ ! -f /usr/local/bin/docker-compose ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
       mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
       chmod +x /usr/local/bin/docker-compose
     fi
