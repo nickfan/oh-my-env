@@ -96,13 +96,13 @@ INSTALL_PKGS_SEGMENT_NGINX="nginx-extras"
 INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
-PKG_VER_wkhtmltox="0.12.6-1"
-PKG_VER_fd="8.2.1"
-PKG_VER_ripgrep="12.1.1"
-PKG_VER_bat="0.17.1"
-PKG_VER_go="1.19.2"
+PKG_VER_wkhtmltox="0.12.6.1-2"
+PKG_VER_fd="8.7.0"
+PKG_VER_ripgrep="13.0.0"
+PKG_VER_bat="0.23.0"
+PKG_VER_go="1.20.3"
 PKG_VER_php_major="7.4"
-PKG_VER_node_major="14"
+PKG_VER_node_major="16"
 
 SETUP_ACT_HOME=${HOME}
 SETUP_ROOT_HOME="/root"
@@ -118,6 +118,7 @@ SETUP_USER=${ACT_USER}
 SETUP_RELEASE=$(lsb_release -cs)
 SETUP_OS_SYSTEM=$(uname -s)
 SETUP_OS_MACHINE=$(uname -m)
+SETUP_OS_ARCH=$(dpkg --print-architecture)
 
 # script env detect setup
 
@@ -1010,13 +1011,13 @@ setup_package_addons(){
   if ! check_skip_step "setup_package_addons" ${SETUP_USER};then return 0;fi
 
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb"
+  if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb"
   fi
-  dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.bionic_amd64.deb
+  dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
     if [[ ! -f ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb ]];then
-        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
+        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd-musl_${PKG_VER_fd}_amd64.deb"
     fi
     dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
     if [[ ! -f ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb ]];then
@@ -1024,7 +1025,7 @@ setup_package_addons(){
     fi
     dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
     if [[ ! -f ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat-musl_${PKG_VER_bat}_amd64.deb"
     fi
     dpkg -i bat_${PKG_VER_bat}_amd64.deb
   fi
