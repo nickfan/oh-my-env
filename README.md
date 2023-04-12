@@ -11,7 +11,7 @@ my env setup script
 
 if you have issue about connection with software source site then you need your server with proxy support to download package or fetch config from source site,
 Solution examples:
-1. server host http proxy service at http://127.0.0.1:1884
+1. server host http proxy service at http://127.0.0.1:7890
 2. ssh client connect to server with proxy forward.
 
 for example, client ssh config:
@@ -20,13 +20,13 @@ Host myserver
     HostName 192.168.0.101
     User user
     Port 22
-    RemoteForward 1884 localhost:1080
+    RemoteForward 7890 localhost:1080
 ```
-forward remote server (192.168.0.101) port 1884 to localhost(ssh client machine) port 1080
-so, if you host http proxy at local machine port 1080, (proxy address:http://127.0.0.1:1080),then you can use this proxy at remote server port 1884:
+forward remote server (192.168.0.101) port 7890 to localhost(ssh client machine) port 1080
+so, if you host http proxy at local machine port 1080, (proxy address:http://127.0.0.1:1080),then you can use this proxy at remote server port 7890:
 check connection via proxy ok at remote server with:
 ```sh
-curl --connect-timeout 15 --max-time 20 -ivs -x http://127.0.0.1:1884 https://httpbin.org/ip
+curl --connect-timeout 15 --max-time 20 -ivs -x http://127.0.0.1:7890 https://httpbin.org/ip
 ```
 
 quick install this via the command-line
