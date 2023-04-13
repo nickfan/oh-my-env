@@ -557,6 +557,10 @@ set_user_shell(){
 
 setup_dist_user_group(){
   if ! check_skip_step "setup_dist_user_group";then return 0;fi
+  getent group adm || groupadd -r -g 4 adm
+  getent group sudo || groupadd -r -g 27 sudo
+  getent group admin || groupadd -r -g 127 admin
+
   getent group ${USER_NAME} || groupadd ${USER_NAME}
   if id "${USER_NAME}" &>/dev/null; then
       echo 'user already exists'
