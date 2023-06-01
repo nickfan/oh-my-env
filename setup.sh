@@ -1128,7 +1128,7 @@ EOL
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     if [[ ! -f ${SETUP_USER_HOME}/setup/go${PKG_VER_go}.linux-amd64.tar.gz ]];then
-      GOLANG_DL_URL="https://gomirrors.org/dl/go/go${PKG_VER_go}.linux-amd64.tar.gz"
+      GOLANG_DL_URL="https://mirrors.ustc.edu.cn/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
       if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
         GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
       fi
