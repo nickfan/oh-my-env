@@ -96,7 +96,7 @@ INSTALL_PKGS_SEGMENT_NGINX="nginx-extras"
 INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
-PKG_VER_wkhtmltox="0.12.6.1-3"
+PKG_VER_wkhtmltox="0.12.6.1-2"
 PKG_VER_fd="8.7.0"
 PKG_VER_ripgrep="13.0.0"
 PKG_VER_bat="0.23.0"
@@ -1015,10 +1015,10 @@ setup_package_addons(){
   if ! check_skip_step "setup_package_addons" ${SETUP_USER};then return 0;fi
 
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_ppc64el.deb ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_ppc64el.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_ppc64el.deb"
+  if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb"
   fi
-  dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_ppc64el.deb
+  dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
     if [[ ! -f ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb ]];then
         exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd-musl_${PKG_VER_fd}_amd64.deb"
