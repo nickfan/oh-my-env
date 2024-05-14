@@ -96,7 +96,7 @@ INSTALL_PKGS_SEGMENT_NGINX="nginx-extras"
 INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
-PKG_VER_wkhtmltox="0.12.6-1"
+PKG_VER_wkhtmltox="0.12.6.1-3"
 PKG_VER_fd="8.7.0"
 PKG_VER_ripgrep="13.0.0"
 PKG_VER_bat="0.23.0"
