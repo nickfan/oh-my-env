@@ -97,10 +97,10 @@ INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libff
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
 PKG_VER_wkhtmltox="0.12.6.1-3"
-PKG_VER_fd="8.7.0"
-PKG_VER_ripgrep="13.0.0"
-PKG_VER_bat="0.23.0"
-PKG_VER_go="1.20.4"
+PKG_VER_fd="10.1.0"
+PKG_VER_ripgrep="14.1.0-1"
+PKG_VER_bat="0.24.0"
+PKG_VER_go="1.22.4"
 PKG_VER_php_major="7.4"
 PKG_VER_node_major="16"
 
@@ -1020,10 +1020,10 @@ setup_package_addons(){
   fi
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
-    if [[ ! -f ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb ]];then
+    if [[ ! -f ${SETUP_USER_HOME}/setup/fd-musl${PKG_VER_fd}_amd64.deb ]];then
         exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd-musl_${PKG_VER_fd}_amd64.deb"
     fi
-    dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
+    dpkg -i -E fd-musl${PKG_VER_fd}_amd64.deb
     if [[ ! -f ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb ]];then
         exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
     fi
@@ -1036,7 +1036,7 @@ setup_package_addons(){
   if [[ ${INSTALL_PKG_ENABLE_DOCKER} -eq 1 ]];then
     exec_cmd "curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash"
     if [[ ! -f /usr/local/bin/dry ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.11.1/dry-linux-amd64"
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/dry-linux-amd64 https://github.com/moncho/dry/releases/download/v0.11.2/dry-linux-amd64"
       mv ${SETUP_USER_HOME}/setup/dry-linux-amd64 /usr/local/bin/dry
       chmod +x /usr/local/bin/dry
     fi
@@ -1046,7 +1046,7 @@ setup_package_addons(){
       chmod +x /usr/local/bin/ctop
     fi
     if [[ ! -f /usr/local/bin/docker-compose ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/docker-compose https://github.com/docker/compose/releases/download/v2.27.1/docker-compose-${SETUP_OS_SYSTEM,,}-${SETUP_OS_MACHINE}"
       mv ${SETUP_USER_HOME}/setup/docker-compose /usr/local/bin/docker-compose
       chmod +x /usr/local/bin/docker-compose
     fi
@@ -1072,7 +1072,6 @@ EOL
         cat >/etc/docker/daemon.json <<EOL
 {
   "registry-mirrors": [
-    "https://hub-mirror.c.163.com"
   ],
   "insecure-registries": [],
   "hosts": ["unix:///var/run/docker.sock"],
