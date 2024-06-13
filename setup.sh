@@ -98,7 +98,7 @@ SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
 PKG_VER_wkhtmltox="0.12.6.1-3"
 PKG_VER_fd="10.1.0"
-PKG_VER_ripgrep="14.1.0-1"
+PKG_VER_ripgrep="14.1.0"
 PKG_VER_bat="0.24.0"
 PKG_VER_go="1.22.4"
 PKG_VER_php_major="7.4"
@@ -1025,7 +1025,7 @@ setup_package_addons(){
     fi
     dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
     if [[ ! -f ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb ]];then
-        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
+        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}-1_amd64.deb"
     fi
     dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
     if [[ ! -f ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb ]];then
