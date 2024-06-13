@@ -1020,16 +1020,16 @@ setup_package_addons(){
   fi
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
-    if [[ ! -f ${SETUP_USER_HOME}/setup/fd-musl${PKG_VER_fd}_amd64.deb ]];then
-        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd-musl_${PKG_VER_fd}_amd64.deb"
+    if [[ ! -f ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb ]];then
+        exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
     fi
-    dpkg -i -E fd-musl${PKG_VER_fd}_amd64.deb
+    dpkg -i -E fd_${PKG_VER_fd}_amd64.deb
     if [[ ! -f ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb ]];then
         exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/ripgrep_${PKG_VER_ripgrep}_amd64.deb https://github.com/BurntSushi/ripgrep/releases/download/${PKG_VER_ripgrep}/ripgrep_${PKG_VER_ripgrep}_amd64.deb"
     fi
     dpkg -i -E ripgrep_${PKG_VER_ripgrep}_amd64.deb
     if [[ ! -f ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat-musl_${PKG_VER_bat}_amd64.deb"
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/bat_${PKG_VER_bat}_amd64.deb https://github.com/sharkdp/bat/releases/download/v${PKG_VER_bat}/bat_${PKG_VER_bat}_amd64.deb"
     fi
     dpkg -i bat_${PKG_VER_bat}_amd64.deb
   fi
