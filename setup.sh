@@ -1202,18 +1202,18 @@ EOL
   fi
 
   if [[ ${INSTALL_PKG_ENABLE_RUST} -eq 1 ]];then
-    if [[ ${SERVER_REGION_CN} == "y" ]];then
-        if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
-          sudo -H -u ${SETUP_USER} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-          if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-              sudo -H -u ${USER_NAME} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-          fi
-        else
+      if [[ ${SERVER_REGION_CN} == "y" ]];then
+#        if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+#          sudo -H -u ${SETUP_USER} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+#          if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+#              sudo -H -u ${USER_NAME} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+#          fi
+#        else
           sudo -H -u ${SETUP_USER} bash -c "source ${SETUP_USER_HOME}/.myenv_mirrors_cn && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
           if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
               sudo -H -u ${USER_NAME} bash -c "source ${SETUP_USER_HOME}/.myenv_mirrors_cn && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
           fi
-        fi
+#        fi
         sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.cargo"
 
         if [[ ! -f ${SETUP_USER_HOME}/.cargo/config_tpl_cn ]];then
