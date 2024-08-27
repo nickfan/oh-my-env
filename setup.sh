@@ -815,6 +815,8 @@ export GO_SOURCE_URL="https://github.com/golang/go"
 export GOPROXY=https://goproxy.cn,direct
 export GOSUMDB=sum.golang.google.cn
 
+#export RUSTUP_DIST_SERVER=https://static.rust-lang.org
+#export RUSTUP_UPDATE_ROOT=https://static.rust-lang.org/rustup
 #export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
 #export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
 export RUSTUP_DIST_SERVER=https://mirrors.tuna.tsinghua.edu.cn/rustup
@@ -1200,17 +1202,58 @@ EOL
   fi
 
   if [[ ${INSTALL_PKG_ENABLE_RUST} -eq 1 ]];then
-    if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
-      sudo -H -u ${SETUP_USER} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-      if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
-          sudo -H -u ${USER_NAME} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-      fi
+    if [[ ${SERVER_REGION_CN} == "y" ]];then
+        if [[ "${USE_PROXY}" == "ok" || "${USE_PROXY}" == "y" || "${USE_PROXY}" == "Y" || "${USE_PROXY}" == "yes" || "${USE_PROXY}" == "Yes"  || "${USE_PROXY}" == "YES" ]];then
+          sudo -H -u ${SETUP_USER} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+              sudo -H -u ${USER_NAME} bash -c "curl -x ${PROXY_URI} --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          fi
+        else
+          sudo -H -u ${SETUP_USER} bash -c "source ${SETUP_USER_HOME}/.myenv_mirrors_cn && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
+              sudo -H -u ${USER_NAME} bash -c "source ${SETUP_USER_HOME}/.myenv_mirrors_cn && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+          fi
+        fi
+        sudo -H -u ${SETUP_USER} bash -c "mkdir -p ${SETUP_USER_HOME}/.cargo"
+
+        if [[ ! -f ${SETUP_USER_HOME}/.cargo/config_tpl_cn ]];then
+          cat >${SETUP_USER_HOME}/.cargo/config_tpl_cn <<EOL
+[source.crates-io]
+registry = "https://github.com/rust-lang/crates.io-index"
+
+# replace with your prefer mirror
+replace-with = 'sjtu'
+#replace-with = 'ustc'
+
+# tsinghua
+[source.tuna]
+registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
+
+# ustc
+[source.ustc]
+registry = "git://mirrors.ustc.edu.cn/crates.io-index"
+
+# sjtug
+[source.sjtu]
+registry = "https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index"
+
+# rustcc
+[source.rustcc]
+registry = "git://crates.rustcc.cn/crates.io-index"
+EOL
+          chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.cargo/config_tpl_cn
+        fi
+        if [[ ! -f ${SETUP_USER_HOME}/.cargo/config ]];then
+          cp -af ${SETUP_USER_HOME}/.cargo/config_tpl_cn ${SETUP_USER_HOME}/.cargo/config
+          chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/.cargo/config
+        fi
     else
       sudo -H -u ${SETUP_USER} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
       if [[ "${USER_NAME}" != "${SETUP_USER}" ]];then
           sudo -H -u ${USER_NAME} bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
       fi
     fi
+
   fi
   set_resume_step "setup_package_addons" ${SETUP_USER}
 }
