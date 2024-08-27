@@ -1016,6 +1016,8 @@ EOL
   else
     sudo -H -u ${SETUP_USER} bash -c "git config --global --unset http.proxy && git config --global --unset https.proxy"
   fi
+  sudo -H -u ${SETUP_USER} bash -c "git config --global http.version HTTP/1.1"
+  sudo -H -u ${SETUP_USER} bash -c "git config --global http.postBuffer 157286400"
   set_resume_step "setup_current_env_files" ${SETUP_USER}
 }
 setup_package_addons(){
