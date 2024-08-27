@@ -263,7 +263,8 @@ chown ${ACT_USER}:${ACT_GROUP} ${HOME}/.omerc.example;
   fi
   if [ ${SERVER_REGION_CN} == "auto" ];then
     echo "detecting server region in CN "
-    SERVER_REGION_CODE=$(curl -fsSL https://ipapi.co/country_code)
+#    SERVER_REGION_CODE=$(curl -fsSL https://ipapi.co/country_code)
+    SERVER_REGION_CODE=$(curl -fsSL http://ip-api.com/line/?fields=countryCode)
     echo "result: ${SERVER_REGION_CODE}"
     if [ ${SERVER_REGION_CODE} == "CN" ] || [ ${SERVER_REGION_CODE} == "cn" ];then
       SERVER_REGION_CN="y"
@@ -632,7 +633,7 @@ update_package_source(){
     add-apt-repository -y -n ppa:nginx/stable
   fi
   if [[ ${INSTALL_PKG_ENABLE_NODEJS} -eq 1 ]];then
-    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+    curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo gpg --dearmor --yes -o /usr/share/keyrings/yarnkey.gpg
     echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
     curl -fsSL https://deb.nodesource.com/setup_${PKG_VER_node_major}.x | bash -
   else
