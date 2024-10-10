@@ -567,8 +567,11 @@ setup_dist_user_group(){
       echo 'user already exists'
   else
     adduser --quiet --disabled-password --shell /bin/zsh --ingroup ${USER_NAME} --home ${USER_HOME} --gecos "User" ${USER_NAME}
-    echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd && usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME}
+    if [ -n "${USER_PASSWORD}" ]; then
+      echo "${USER_NAME}:${USER_PASSWORD}" | chpasswd
+    fi
   fi
+  usermod -aG sudo ${USER_NAME} && usermod -aG adm ${USER_NAME} && usermod -aG www-data ${USER_NAME}
   set_resume_step "setup_dist_user_group"
 }
 setup_system_env_files(){
