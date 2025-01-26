@@ -100,7 +100,7 @@ PKG_VER_wkhtmltox="0.12.6.1-3"
 PKG_VER_fd="10.1.0"
 PKG_VER_ripgrep="14.1.0"
 PKG_VER_bat="0.24.0"
-PKG_VER_go="1.23.0"
+PKG_VER_go="1.23.5"
 PKG_VER_php_major="7.4"
 PKG_VER_node_major="20"
 
