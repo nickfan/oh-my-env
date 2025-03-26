@@ -80,7 +80,7 @@ INSTALL_PKG_ENABLE_LIBS=1
 #SKIP_setup_env_conda=0
 
 INSTALL_PKGS_BASE="sudo net-tools iputils-ping iproute2 telnet curl wget httping nano procps traceroute iperf3 apt-transport-https ca-certificates lsb-release software-properties-common gnupg-agent gnupg gnupg2 pass rng-tools openssh-client ntp ntpdate language-pack-en-base language-pack-zh-hans zsh autojump fonts-powerline xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils fonts-wqy-microhei fonts-wqy-zenhei xfonts-wqy locales-all"
-INSTALL_PKGS_SYSTEM="build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc tig jq"
+INSTALL_PKGS_SYSTEM="build-essential gcc g++ make cmake autoconf automake patch gdb libtool cpp pkg-config libc6-dev libncurses-dev sqlite3 openssl unixodbc pkg-config re2c keyboard-configuration bzip2 unzip p7zip unrar-free git-core mercurial wget curl nano vim lsof vim-doc vim-scripts ed gawk screen tmux valgrind graphviz graphviz-dev xsel xclip mc urlview tree tofrodos proxychains privoxy socat zhcon supervisor certbot lrzsz mc tig jq"
 
 INSTALL_PKGS_SEGMENT_OPS="vim-nox neovim python3-neovim xxd wamerican lnav htop iftop iotop nethogs dstat multitail ncdu ranger silversearcher-ag asciinema"
 INSTALL_PKGS_SEGMENT_SRV="openssh-server"
@@ -93,7 +93,10 @@ INSTALL_PKGS_SEGMENT_PHP=""
 INSTALL_PKGS_SEGMENT_DOCKER="docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
 INSTALL_PKGS_SEGMENT_NGINX="nginx-extras"
 #INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libgconf2-4 libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
-INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libpcre++-dev libmhash-dev libmcrypt-dev libltdl7-dev mcrypt libiconv-hook-dev libsqlite-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
+INSTALL_PKGS_SEGMENT_LIBS="libxml2-dev libbz2-dev libexpat1-dev libssl-dev libffi-dev libsecret-1-dev libdb-dev libgmp3-dev zlib1g-dev linux-libc-dev libgudev-1.0-dev uuid-dev libpng-dev libjpeg-dev libfreetype6-dev libxslt1-dev libssh-dev libssh2-1-dev libpcre3-dev libmhash-dev libmcrypt-dev mcrypt libiconv-hook-dev libgettextpo0 libwrap0-dev libreadline-dev libzookeeper-mt-dev libnghttp2-dev"
+INSTALL_PKGS_SEGMENT_LIBS_ADDON_BASE="sqlite libsqlite-dev libpcre++-dev libltdl7-dev"
+INSTALL_PKGS_SEGMENT_LIBS_ADDON_24="sqlite3 libsqlite3-dev libpcre2-dev libltdl-dev"
+
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
 PKG_VER_wkhtmltox="0.12.6.1-3"
@@ -119,6 +122,10 @@ SETUP_RELEASE=$(lsb_release -cs)
 SETUP_OS_SYSTEM=$(uname -s)
 SETUP_OS_MACHINE=$(uname -m)
 SETUP_OS_ARCH=$(dpkg --print-architecture)
+
+# Extract major version number from release codename
+SETUP_RELEASE_VER=$(lsb_release -rs)
+SETUP_RELEASE_VER_MAJOR_PART=${SETUP_RELEASE_VER%.*}
 
 # script env detect setup
 
@@ -693,7 +700,15 @@ install_package_system(){
     INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_PHP}"
   fi
   if [[ ${INSTALL_PKG_ENABLE_LIBS} -eq 1 ]];then
-    INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_LIBS}"
+    # Check if version-specific addon package list exists
+    ADDON_VAR_NAME="INSTALL_PKGS_SEGMENT_LIBS_ADDON_${SETUP_RELEASE_VER_MAJOR_PART}"
+    if [ -n "${!ADDON_VAR_NAME}" ]; then
+      # If version-specific addon exists, use it
+      INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_LIBS} ${!ADDON_VAR_NAME}"
+    else
+      # Otherwise use base addon
+      INSTALL_PKGS_SETUP="${INSTALL_PKGS_SETUP} ${INSTALL_PKGS_SEGMENT_LIBS} ${INSTALL_PKGS_SEGMENT_LIBS_ADDON_BASE}"
+    fi
   fi
   exec_cmd "apt-get -c ${SETUP_ACT_HOME}/.apt_proxy.conf install -y --no-install-recommends ${INSTALL_PKGS_SETUP}"
   set_resume_step "install_package_system"
