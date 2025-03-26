@@ -100,6 +100,8 @@ INSTALL_PKGS_SEGMENT_LIBS_ADDON_24="sqlite3 libsqlite3-dev libpcre2-dev libltdl-
 SETUP_PKG_SEGMENT_GOLANG_PATH="/usr/local/go/bin"
 
 PKG_VER_wkhtmltox="0.12.6.1-3"
+PKG_OS_VER_wkhtmltox=""
+
 PKG_VER_fd="10.1.0"
 PKG_VER_ripgrep="14.1.0"
 PKG_VER_bat="0.24.0"
@@ -1047,8 +1049,15 @@ setup_package_addons(){
   if ! check_skip_step "setup_package_addons" ${SETUP_USER};then return 0;fi
 
   mkdir -p ${SETUP_USER_HOME}/setup && chown ${SETUP_USER}:${SETUP_USER} ${SETUP_USER_HOME}/setup && cd ${SETUP_USER_HOME}/setup
-  if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb ]];then
-      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb"
+  PKG_OS_VER_wkhtmltox=${SETUP_RELEASE}
+  if [[ ${SETUP_RELEASE_VER_MAJOR_PART} -gt 22 ]]; then
+    PKG_OS_VER_wkhtmltox="jammy"
+  else
+    PKG_OS_VER_wkhtmltox=${SETUP_RELEASE}
+  fi
+
+  if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${PKG_OS_VER_wkhtmltox}_amd64.deb ]];then
+      exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${PKG_OS_VER_wkhtmltox}_amd64.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.${PKG_OS_VER_wkhtmltox}_amd64.deb"
   fi
   dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
