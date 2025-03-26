@@ -1059,7 +1059,7 @@ setup_package_addons(){
   if [[ ! -f ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${PKG_OS_VER_wkhtmltox}_amd64.deb ]];then
       exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/wkhtmltox_${PKG_VER_wkhtmltox}.${PKG_OS_VER_wkhtmltox}_amd64.deb https://github.com/wkhtmltopdf/packaging/releases/download/${PKG_VER_wkhtmltox}/wkhtmltox_${PKG_VER_wkhtmltox}.${PKG_OS_VER_wkhtmltox}_amd64.deb"
   fi
-  dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${SETUP_RELEASE}_amd64.deb
+  dpkg -i -E wkhtmltox_${PKG_VER_wkhtmltox}.${PKG_OS_VER_wkhtmltox}_amd64.deb
   if [[ ${INSTALL_PKG_ENABLE_OPS} -eq 1 ]];then
     if [[ ! -f ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb ]];then
         exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/fd_${PKG_VER_fd}_amd64.deb https://github.com/sharkdp/fd/releases/download/v${PKG_VER_fd}/fd_${PKG_VER_fd}_amd64.deb"
