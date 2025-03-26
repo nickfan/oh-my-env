@@ -105,7 +105,7 @@ PKG_OS_VER_wkhtmltox=""
 PKG_VER_fd="10.1.0"
 PKG_VER_ripgrep="14.1.0"
 PKG_VER_bat="0.24.0"
-PKG_VER_go="1.23.5"
+PKG_VER_go="1.24.1"
 PKG_VER_php_major="7.4"
 PKG_VER_node_major="20"
 
@@ -1168,9 +1168,9 @@ EOL
   fi
   if [[ ${INSTALL_PKG_ENABLE_GOLANG} -eq 1 ]];then
     if [[ ! -f ${SETUP_USER_HOME}/setup/go${PKG_VER_go}.linux-amd64.tar.gz ]];then
-      GOLANG_DL_URL="https://mirrors.ustc.edu.cn/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
+      GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
       if ! check_url_is_ok "${GOLANG_DL_URL}" ; then
-        GOLANG_DL_URL="https://go.dev/dl/go${PKG_VER_go}.linux-amd64.tar.gz"
+        GOLANG_DL_URL="https://mirrors.ustc.edu.cn/golang/go${PKG_VER_go}.linux-amd64.tar.gz"
       fi
       exec_cmd "curl -fsSL -o ${SETUP_USER_HOME}/setup/go${PKG_VER_go}.linux-amd64.tar.gz ${GOLANG_DL_URL}"
     fi
