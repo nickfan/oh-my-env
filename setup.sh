@@ -1315,7 +1315,6 @@ plugins=(
 tmux tmuxinator
 ssh-agent z autojump history last-working-dir zsh-completions zsh-autosuggestions zsh-syntax-highlighting
 catimg git golang npm node docker github httpie jsontools
-composer laravel5
 )
 #autoload -U compinit && compinit
 export ZSH_TMUX_AUTOSTART=false
@@ -1343,7 +1342,7 @@ else
     if [ -f "${SETUP_USER_HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
         . "${SETUP_USER_HOME}/miniconda3/etc/profile.d/conda.sh"
     else
-        export PATH="${SETUP_USER_HOME}/miniconda3/bin:$PATH"
+        export PATH="${SETUP_USER_HOME}/miniconda3/bin:\$PATH"
     fi
 fi
 unset __conda_setup
